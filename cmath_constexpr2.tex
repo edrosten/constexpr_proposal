@@ -1,0 +1,231 @@
+\documentclass[prd,preprint,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
+
+\newcommand{\code}[1]{{\tt #1}}
+\newcommand{\constexpr}{\code{constexpr}}
+\newcommand{\header}[1]{{\tt <#1>}}
+\newcommand{\cmath}{\header{cmath}}
+
+\newcommand{\FEINVALID}{{\tt FE\_INVALID}}
+\newcommand{\FEDIVBYZERO}{{\tt FE\_DIVBYZERO}}
+\newcommand{\FEINEXACT}{{\tt FE\_INEXACT}}
+\newcommand{\FEUNDERFLOW}{{\tt FE\_UNDERFLOW}}
+\newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
+
+
+\newtheorem{criteria}{Citeria}
+
+\begin{document}
+
+
+\title{\constexpr\ for \cmath}
+\author{Edward J.~Rosten \& Oliver J.~Rosten}
+\date{\today}
+\maketitle
+
+\section{Introduction}
+
+We propose simple criteria for selecting functions in \cmath\ which should be declared \constexpr. Applying this, a list of such functions is drawn up.
+
+\section{Motivation \& Scope}
+
+The introduction of \constexpr\ has facilitated intuitive compile-time programming. This paper seeks to rectify the current absence of \constexpr\ in \cmath, in order to broaden the range of numeric computations that can be performed using standard library facilities. From inspection of \cmath, it may not be immediately obvious precisely which functions should be declared \constexpr. To put the application of \constexpr\ on a rigorous footing, we propose the following:
+\begin{criteria}
+	A function in \cmath\ shall be declared \constexpr\ if:
+	\begin{enumerate}
+		\item When taken to act on the set of extended rational numbers, the function is closed;
+		
+		\item The function does not modify any if its arguments which have external visibility.
+	\end{enumerate}
+\label{cri:rational}	
+\end{criteria}
+
+It may seem that these criteria are insufficiently restrictive since various functions satisfying both may, under certain conditions, set global flags. Specifically \code{errno} may be set and/or the various floating-point exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW and \FEINEXACT\ may be raised. However, the same issues are faced by the standard arithmetic operators and these are nevertheless declared \constexpr. Specifically, for functions declared \constexpr, errors raised by division by zero, domain errors or overflows should result in a compiler error. Underflows and truncations are to be ignored. This is consistent with the behaviour of the arithmetic operators.
+
+Finally, the criteria list above can be systematically relaxed in the future, as appropriate\footnote{gcc already defines \code{std::exp} to be \constexpr\ suggesting that entire functions may be the next candidates.}
+
+\section{Impact On the Standard}
+
+This proposal is a pure library extension. It proposes changes to the existing headers \cmath\ and \header{cstdlib} such that the changes do not break existing code and do not degrade performance. It does not require any changes in the core language. {\bf need to say something about what compiler may need to do?}
+
+
+\section{Design Decisions}
+
+There is at least one natural candidate in \header{cmath}, namely $\code{abs}$, to which \constexpr\ should be applied. But beyond this, it is desirable to apply \constexpr\ throughout \cmath\ in a consistent manner. Ideally, one would like a single criterion rooted in mathematics. However, the reality is that this insufficiently restrictive. Nevertheless, mathematics was our starting point; as such, any condition on functions to be \constexpr\ must select the basic arithmetic operations, $+,-,\times,/$ since these are already \constexpr.
+
+Mathematically, a field is closed under both addition and multiplication. Numeric types do not form a field; however, since the basic arithmetic operations are already declared \constexpr, this suggests that it may be possible to utilize a field which captures enough of the properties of numeric types in order to be useful in formulating criteria for the application of \constexpr. The rational numbers are the natural candidate since all valid values of numeric types are elements of this set. 
+
+P0415R0 asserts that it may unreasonably burden compiler developers to declare \code{sqrt} to be \constexpr. This suggests that, at least for the first sweep through \cmath, only those functions which are `simple enough' should be tagged \constexpr. Noting that \code{sqrt} does not close on the rationals leads to the first condition of criteria~\ref{cri:rational}. Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\ satisfying this criterion and states whether or not they pass the second criterion as well. To reduce space, the following convention is observed. The functions listed in section 26.9 are divided into blocks of closely related functions such as those shown in \ref{tab:example}. 
+\begin{table}
+	\begin{tabular}{l}
+		\code{int ilogb(float arg)}
+	\\
+		\code{int ilogb(double arg)}
+	\\
+		\code{int ilogb(long double arg)}
+	\\
+		\code{int ilogbf(float arg)}
+	\\
+		\code{int ilogbl(long double arg)}
+	\end{tabular}
+\caption{Example of a family of functions which appear as a block in the standard.}
+\label{tab:example}
+\end{table}
+Note that while the first three functions are overloads, the fourth and fifth have differing names.
+When classifying those functions which satisfy the first criterion, we will give just the first function in each such block, with the understanding that the others are similar in this regard.
+
+\begin{table}[h]
+	\begin{tabular}{lcc}
+		Function & Pass & Comment
+	\\
+	\hline \hline
+		\code{float frexp(float value, int* exp)} & No & Modifies argument with external visibility
+	\\
+	\hline
+		\code{int ilogb(float arg)} & Yes & May set global variable
+	\\
+	\hline
+		\code{float ldexp(float x, int exp)} & Yes & May set global variable
+	\\
+	\hline
+		\code{float modf(float value, float* iptr)} & No & Modifies argument with external visibility
+	\\
+	\hline
+		\code {float scalbn(float x, int n)} & Yes & May set global variable
+	\\
+	\hline
+		\code {float scalbln(float x, long int n)} & Yes & May set global variable
+	\end{tabular}
+\caption{Functions declared in \S 26.9.1 which close on the rationals.}
+\label{tab:26.9.1}
+\end{table}
+
+
+\begin{table}[h]
+	\begin{tabular}{lc}
+		Function & Pass
+	\\
+	\hline \hline
+		\code{int abs(int j)} & Yes
+	\\
+	\hline
+		\code{float fabs(float x)} & Yes
+	\end{tabular}
+\caption{Functions declared in \S 26.9.2 which close on the rationals.}
+\label{tab:26.9.2}
+\end{table}
+
+\begin{table}[h]
+	\begin{tabular}{lcc}
+		Function & Pass & Comment
+	\\
+	\hline \hline
+		\code{float ceil(float x)} &  Yes & 
+	\\
+	\hline
+		\code{float floor(float x)} & Yes &
+	\\
+	\hline
+		\code{float nearbyint(float x)} & Yes &
+	\\
+	\hline
+		\code{float rint(float x)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{long int lrint(float x)} &  Yes & May set a global variable
+	\\
+	\hline
+		\code{long long int llrint(float x)} & Yes & May set a global variable 
+	\\
+	\hline
+		\code{float round(float x)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float lround(float x)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float llround(float x)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float trunc(float x)} &  Yes & May set a global variable
+	\\
+	\hline
+		\code{float fmod(float x, float y)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float remainder(float x, float y} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float remquo(float x, float y, int* quo)} & No & Modifies argument with external visibility
+	\\
+	\hline
+		\code{float copysign(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{float nextafter(float x, float y)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float nexttoward(float x, long double y)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float fdim(float x, float y)} & Yes & May set a global variable
+	\\
+	\hline
+		\code{float fmax(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{float fmin(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{float fma(float x, float y, float z)} & Yes & May set a global variable
+	\end{tabular}
+\caption{Functions declared in \S 26.9.3 which close on the rationals.}
+\label{tab:26.9.3}
+\end{table}
+
+\begin{table}[h]
+	\begin{tabular}{lcc}
+		Function & Pass & Comment
+	\\
+	\hline \hline
+		\code{int fpclassify(float x);} & Yes &
+	\\
+	\hline
+		\code{int isfinite(float x)} & Yes &
+	\\
+	\hline
+		\code{int isinf(float x)} & Yes & \constexpr\ of dubious utility 
+	\\
+	\hline
+		\code{int isnan(float x)} & Yes & \constexpr\ of dubious utility 
+	\\
+	\hline
+		\code{int isnormal(float x)} & Yes &
+	\\
+	\hline
+		\code{int signbit(float x)} & Yes &
+	\\
+	\hline
+		\code{int isgreater(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int isgreaterequal(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int isless(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int islessequal(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int islessgreater(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int isunordered(float x, float y)} & Yes &
+	\end{tabular}
+\caption{Functions declared in \S 26.9.4 which close on the rationals.}
+\label{tab:26.9.4}
+\end{table}
+
+\section{Technical Specifications}
+
+\end{document}
