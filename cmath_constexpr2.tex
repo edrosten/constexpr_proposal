@@ -94,15 +94,18 @@ this insufficiently restrictive. Nevertheless, mathematics was our starting
 point; as such, any condition on functions to be \constexpr must select the
 basic arithmetic operations, $+,-,\times,/$ since these are already \constexpr.
 
-Mathematically, a field is closed under both addition and multiplication.
+Mathematically, a field is closed under the elementary operations of addition
+and multiplication.
 Numeric types do not form a field; however, since the basic arithmetic
 operations are already declared \constexpr, this suggests that it may be
 possible to utilize a field which captures enough of the properties of numeric
 types in order to be useful in formulating criteria for the application of
 \constexpr. The rational numbers are the natural candidate since all valid
-values of numeric types are elements of this set. The (extended) rationals close over
-$+,-,\times,/$ but functions such as \code{exp}, \code{sqrt}, \code{cos},
-\code{sin} and so on are excluded by our first criterion.
+values of numeric types are elements of this set. The rationals close over
+$+,-,\times,/$ (with zero excluded for division)
+but functions such as \code{exp}, \code{sqrt}, \code{cos},
+\code{sin} do not close and so are ruled out as \constexpr candidates
+by our first criterion.
 
 The subtlety of global flags being set upon encountering floating-point
 exceptions presents a challenge. If all functions which can set such flags are
