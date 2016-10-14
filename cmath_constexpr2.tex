@@ -1,7 +1,8 @@
 \documentclass[prd,preprint,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
 
+\usepackage{xspace} %Dude this will blow your mind!
+\newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
-\newcommand{\constexpr}{\code{constexpr}}
 \newcommand{\header}[1]{{\tt <#1>}}
 \newcommand{\cmath}{\header{cmath}}
 
@@ -17,7 +18,7 @@
 \begin{document}
 
 
-\title{\constexpr\ for \cmath}
+\title{\constexpr for \cmath}
 \author{Edward J.~Rosten \& Oliver J.~Rosten}
 \date{\today}
 \maketitle
@@ -29,15 +30,15 @@ declared \constexpr. Applying this, a list of such functions is drawn up.
 
 \section{Motivation \& Scope}
 
-The introduction of \constexpr\ has facilitated intuitive compile-time
-programming. This paper seeks to rectify the current absence of \constexpr\ in
+The introduction of \constexpr has facilitated intuitive compile-time
+programming. This paper seeks to rectify the current absence of \constexpr in
 \cmath, in order to broaden the range of numeric computations that can be
 performed using standard library facilities. From inspection of \cmath, it may
 not be immediately obvious precisely which functions should be declared
-\constexpr. To put the application of \constexpr\ on a rigorous footing, we
+\constexpr. To put the application of \constexpr on a rigorous footing, we
 propose the following:
 \begin{criteria}
-	A function in \cmath\ shall be declared \constexpr\ if:
+	A function in \cmath\ shall be declared \constexpr if:
 	\begin{enumerate}
 		\item When taken to act on the set of extended rational numbers, the function is closed;
 		
@@ -55,16 +56,20 @@ arithmetic operators and these are nevertheless available for use in constant
 expressions. The proposed strategy is to mimic the behaviour of the arithmetic
 operators.
 
-Specifically, functions declared \constexpr, \emph{when used in a \constexpr\
+Specifically, functions declared \constexpr, \emph{when used in a \constexpr
 context}, should give a compiler error if division by zero, domain errors or
-overflows occur. When not used in a \constexpr\ context, the various global
+overflows occur. When not used in a \constexpr context, the various global
 flags should be set as normal. This distinction between these two contexts
 implies that any implementation cannot be done as a pure library extension.
 Consequently, there will be some burden on compiler vendors. However, the first
 criteria above ensures that the functions to be changes are in some sense
-simple. Bearing in mind that gcc already declares the more complicated
-functions \code{std::exp} and \code{std::sqrt} to be \constexpr, it is hoped
-that any burden implicit in this proposal is minimal.
+simple. Bearing in mind that both GCC and clang support this to some extent. 
+GCC already declares the more complicated
+functions \code{std::exp} and \code{std::sqrt} to be \constexpr. While clang
+does not currently support \constexpr for \code{std::sqrt}, it does offer it as
+a builtin and is able to use it to perform compile time computations, constant
+propagation and so on. It therefore hoped that any burden implicit in this
+proposal is minimal.
 
 \section{Impact On the Standard}
 
@@ -72,16 +77,16 @@ This proposal impacts the existing headers \cmath\ and \header{cstdlib} such
 that the changes do not break existing code and do not degrade performance.
 However, it is not a pure library extension. The subtlety arises because of the
 requirement that some of the functions affected must behave differently
-depending on whether or not they are used in a \constexpr\ context.
+depending on whether or not they are used in a \constexpr context.
 
 \section{Design Decisions}
 
 There is at least one natural candidate in \header{cmath}, namely $\code{abs}$,
-to which \constexpr\ should be applied. But beyond this, it is desirable to
-apply \constexpr\ throughout \cmath\ in a consistent manner. Ideally, one would
+to which \constexpr should be applied. But beyond this, it is desirable to
+apply \constexpr throughout \cmath\ in a consistent manner. Ideally, one would
 like one or more criteria rooted in mathematics. However, the reality is that
 this insufficiently restrictive. Nevertheless, mathematics was our starting
-point; as such, any condition on functions to be \constexpr\ must select the
+point; as such, any condition on functions to be \constexpr must select the
 basic arithmetic operations, $+,-,\times,/$ since these are already \constexpr.
 
 Mathematically, a field is closed under both addition and multiplication.
@@ -132,6 +137,9 @@ understanding that the others are similar in this regard.
 	\\
 	\hline
 		\code{int ilogb(float arg)} & Yes & May set global variable
+	\\
+	\hline
+		\code{float logb(float arg)} & Yes & May set global variable
 	\\
 	\hline
 		\code{float ldexp(float x, int exp)} & Yes & May set global variable
@@ -243,10 +251,10 @@ understanding that the others are similar in this regard.
 		\code{int isfinite(float x)} & Yes &
 	\\
 	\hline
-		\code{int isinf(float x)} & Yes & \constexpr\ of dubious utility 
+		\code{int isinf(float x)} & Yes & \constexpr of dubious utility 
 	\\
 	\hline
-		\code{int isnan(float x)} & Yes & \constexpr\ of dubious utility 
+		\code{int isnan(float x)} & Yes & \constexpr of dubious utility 
 	\\
 	\hline
 		\code{int isnormal(float x)} & Yes &
