@@ -1,0 +1,6 @@
+.*.swp
+*.pdf
+*.log
+*.aux
+*.bib
+src/constexpr_sqrt
