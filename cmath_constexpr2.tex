@@ -24,11 +24,18 @@
 
 \section{Introduction}
 
-We propose simple criteria for selecting functions in \cmath\ which should be declared \constexpr. Applying this, a list of such functions is drawn up.
+We propose simple criteria for selecting functions in \cmath\ which should be
+declared \constexpr. Applying this, a list of such functions is drawn up.
 
 \section{Motivation \& Scope}
 
-The introduction of \constexpr\ has facilitated intuitive compile-time programming. This paper seeks to rectify the current absence of \constexpr\ in \cmath, in order to broaden the range of numeric computations that can be performed using standard library facilities. From inspection of \cmath, it may not be immediately obvious precisely which functions should be declared \constexpr. To put the application of \constexpr\ on a rigorous footing, we propose the following:
+The introduction of \constexpr\ has facilitated intuitive compile-time
+programming. This paper seeks to rectify the current absence of \constexpr\ in
+\cmath, in order to broaden the range of numeric computations that can be
+performed using standard library facilities. From inspection of \cmath, it may
+not be immediately obvious precisely which functions should be declared
+\constexpr. To put the application of \constexpr\ on a rigorous footing, we
+propose the following:
 \begin{criteria}
 	A function in \cmath\ shall be declared \constexpr\ if:
 	\begin{enumerate}
@@ -39,21 +46,63 @@ The introduction of \constexpr\ has facilitated intuitive compile-time programmi
 \label{cri:rational}	
 \end{criteria}
 
-It may seem that these criteria are insufficiently restrictive since various functions satisfying both may, under certain conditions, set global flags. Specifically \code{errno} may be set and/or the various floating-point exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and \FEINEXACT\ may be raised. However, the same issues are faced by the standard arithmetic operators and these are nevertheless available for use in constant expressions. The proposed strategy is to mimic the behaviour of the arithmetic operators.
+It may seem that these criteria are insufficiently restrictive since various
+functions satisfying both may, under certain conditions, set global flags.
+Specifically \code{errno} may be set and/or the various floating-point
+exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
+\FEINEXACT\ may be raised. However, the same issues are faced by the standard
+arithmetic operators and these are nevertheless available for use in constant
+expressions. The proposed strategy is to mimic the behaviour of the arithmetic
+operators.
 
-Specifically, functions declared \constexpr, \emph{when used in a \constexpr\ context}, should give a compiler error if division by zero, domain errors or overflows occur. When not used in a \constexpr\ context, the various global flags should be set as normal. This distinction between these two contexts implies that any implementation cannot be done as a pure library extension. Consequently, there will be some burden on compiler vendors. However, the first criteria above ensures that the functions to be changes are in some sense simple. Bearing in mind that gcc already declares the more complicated functions \code{std::exp} and \code{std::sqrt} to be \constexpr, it is hoped that any burden implicit in this proposal is minimal.
+Specifically, functions declared \constexpr, \emph{when used in a \constexpr\
+context}, should give a compiler error if division by zero, domain errors or
+overflows occur. When not used in a \constexpr\ context, the various global
+flags should be set as normal. This distinction between these two contexts
+implies that any implementation cannot be done as a pure library extension.
+Consequently, there will be some burden on compiler vendors. However, the first
+criteria above ensures that the functions to be changes are in some sense
+simple. Bearing in mind that gcc already declares the more complicated
+functions \code{std::exp} and \code{std::sqrt} to be \constexpr, it is hoped
+that any burden implicit in this proposal is minimal.
 
 \section{Impact On the Standard}
 
-This proposal impacts the existing headers \cmath\ and \header{cstdlib} such that the changes do not break existing code and do not degrade performance. However, it is not a pure library extension. The subtlety arises because of the requirement that some of the functions affected must behave differently depending on whether or not they are used in a \constexpr\ context.
+This proposal impacts the existing headers \cmath\ and \header{cstdlib} such
+that the changes do not break existing code and do not degrade performance.
+However, it is not a pure library extension. The subtlety arises because of the
+requirement that some of the functions affected must behave differently
+depending on whether or not they are used in a \constexpr\ context.
 
 \section{Design Decisions}
 
-There is at least one natural candidate in \header{cmath}, namely $\code{abs}$, to which \constexpr\ should be applied. But beyond this, it is desirable to apply \constexpr\ throughout \cmath\ in a consistent manner. Ideally, one would like one or more criteria rooted in mathematics. However, the reality is that this insufficiently restrictive. Nevertheless, mathematics was our starting point; as such, any condition on functions to be \constexpr\ must select the basic arithmetic operations, $+,-,\times,/$ since these are already \constexpr.
+There is at least one natural candidate in \header{cmath}, namely $\code{abs}$,
+to which \constexpr\ should be applied. But beyond this, it is desirable to
+apply \constexpr\ throughout \cmath\ in a consistent manner. Ideally, one would
+like one or more criteria rooted in mathematics. However, the reality is that
+this insufficiently restrictive. Nevertheless, mathematics was our starting
+point; as such, any condition on functions to be \constexpr\ must select the
+basic arithmetic operations, $+,-,\times,/$ since these are already \constexpr.
 
-Mathematically, a field is closed under both addition and multiplication. Numeric types do not form a field; however, since the basic arithmetic operations are already declared \constexpr, this suggests that it may be possible to utilize a field which captures enough of the properties of numeric types in order to be useful in formulating criteria for the application of \constexpr. The rational numbers are the natural candidate since all valid values of numeric types are elements of this set. 
+Mathematically, a field is closed under both addition and multiplication.
+Numeric types do not form a field; however, since the basic arithmetic
+operations are already declared \constexpr, this suggests that it may be
+possible to utilize a field which captures enough of the properties of numeric
+types in order to be useful in formulating criteria for the application of
+\constexpr. The rational numbers are the natural candidate since all valid
+values of numeric types are elements of this set. 
 
-The subtlety of global flags being set upon encountering floating-point exceptions presents a challenge. If all functions which can set such flags are excluded from the list to tag \constexpr, then the remaining list is rather sparse. To achieve something more useful suggests expanding the set to include those functions which are `simple enough'. These considerations lead to the first condition of criteria~\ref{cri:rational}. Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\ satisfying this criterion and states whether or not they pass the second criterion as well. To reduce space, the following convention is observed. The functions listed in section 26.9 are divided into blocks of closely related functions such as those shown in \ref{tab:example}. 
+The subtlety of global flags being set upon encountering floating-point
+exceptions presents a challenge. If all functions which can set such flags are
+excluded from the list to tag \constexpr, then the remaining list is rather
+sparse. To achieve something more useful suggests expanding the set to include
+those functions which are `simple enough'. These considerations lead to the
+first condition of criteria~\ref{cri:rational}.
+Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
+satisfying this criterion and states whether or not they pass the second
+criterion as well. To reduce space, the following convention is observed. The
+functions listed in section 26.9 are divided into blocks of closely related
+functions such as those shown in \ref{tab:example}. 
 \begin{table}
 	\begin{tabular}{l}
 		\code{int ilogb(float arg)}
@@ -69,8 +118,10 @@ The subtlety of global flags being set upon encountering floating-point exceptio
 \caption{Example of a family of functions which appear as a block in the standard.}
 \label{tab:example}
 \end{table}
-Note that while the first three functions are overloads, the fourth and fifth have differing names.
-When classifying those functions which satisfy the first criterion, we will give just the first function in each such block, with the understanding that the others are similar in this regard.
+Note that while the first three functions are overloads, the fourth and fifth
+have differing names.  When classifying those functions which satisfy the first
+criterion, we will give just the first function in each such block, with the
+understanding that the others are similar in this regard.
 
 \begin{table}[h]
 	\begin{tabular}{lcc}
