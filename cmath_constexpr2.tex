@@ -56,7 +56,7 @@ Specifically \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
 \FEINEXACT\ may be raised. The latter issue is 
 faced by the standard
-arithmetic operators and these are nevertheless available for use in constant
+arithmetic operators but these are nevertheless available for use in constant
 expressions. The proposed strategy is to mimic the behaviour of the arithmetic
 operators.
 
@@ -66,14 +66,14 @@ overflows occur. When not used in a \constexpr context, the various global
 flags should be set as normal. This distinction between these two contexts
 implies that any implementation cannot be done as a pure library extension.
 Consequently, there will be some burden on compiler vendors. However, the first
-criteria above ensures that the functions to be changes are in some sense
-simple. Both GCC and clang already support this to some extent. 
-GCC already declares the majority of functions as \constexpr, such as
+criterion above ensures that the functions to be changed are in some sense
+simple. Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
+GCC declares the majority of functions as \constexpr, including
 \code{std::sqrt}, \code{std::exp}, \code{std::lgamma}, etc.
 While clang
-does not it does offer some functions as 
-builtins and is able to use it to perform compile time computations, constant
-propagation and so on. It therefore hoped that any burden implicit in this
+does not, it does offer some functions as 
+builtins and is able to use them to perform compile time computations, constant
+propagation and so on. It is therefore hoped that any burden implicit in this
 proposal is minimal.
 
 \section{Impact On the Standard}
@@ -100,9 +100,9 @@ operations are already declared \constexpr, this suggests that it may be
 possible to utilize a field which captures enough of the properties of numeric
 types in order to be useful in formulating criteria for the application of
 \constexpr. The rational numbers are the natural candidate since all valid
-values of numeric types are elements of this set, the rationals close over
-$+,-,\times,/$ and functions such as \code{exp}, \code{sqrt}, \code{cos},
-\code{sin} and so on are excluded.
+values of numeric types are elements of this set. The (extended) rationals close over
+$+,-,\times,/$ but functions such as \code{exp}, \code{sqrt}, \code{cos},
+\code{sin} and so on are excluded by our first criterion.
 
 The subtlety of global flags being set upon encountering floating-point
 exceptions presents a challenge. If all functions which can set such flags are
@@ -184,10 +184,10 @@ understanding that the others are similar in this regard.
 		Function & Pass & Comment
 	\\
 	\hline \hline
-		\code{float ceil(float x)} &  Yes & 
+		\code{float ceil(float x)} &  Yes & Some implementations may set a global variable
 	\\
 	\hline
-		\code{float floor(float x)} & Yes &
+		\code{float floor(float x)} & Yes & Some implementations may set a global variable
 	\\
 	\hline
 		\code{float nearbyint(float x)} & Yes &
