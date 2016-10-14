@@ -11,7 +11,7 @@
 \newcommand{\FEINEXACT}{{\tt FE\_INEXACT}}
 \newcommand{\FEUNDERFLOW}{{\tt FE\_UNDERFLOW}}
 \newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
-
+\newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
 \newtheorem{criteria}{Citeria}
 
@@ -33,7 +33,10 @@ declared \constexpr. Applying this, a list of such functions is drawn up.
 The introduction of \constexpr has facilitated intuitive compile-time
 programming. This paper seeks to rectify the current absence of \constexpr in
 \cmath, in order to broaden the range of numeric computations that can be
-performed using standard library facilities. From inspection of \cmath, it may
+performed using standard library facilities. In this proposal we are restricting
+the functions to those which are in a sense no more complicated than the
+currently supported operations (\Operators).
+From inspection of \cmath, it may
 not be immediately obvious precisely which functions should be declared
 \constexpr. To put the application of \constexpr on a rigorous footing, we
 propose the following:
@@ -51,7 +54,8 @@ It may seem that these criteria are insufficiently restrictive since various
 functions satisfying both may, under certain conditions, set global flags.
 Specifically \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
-\FEINEXACT\ may be raised. However, the same issues are faced by the standard
+\FEINEXACT\ may be raised. The latter issue is 
+faced by the standard
 arithmetic operators and these are nevertheless available for use in constant
 expressions. The proposed strategy is to mimic the behaviour of the arithmetic
 operators.
@@ -63,11 +67,12 @@ flags should be set as normal. This distinction between these two contexts
 implies that any implementation cannot be done as a pure library extension.
 Consequently, there will be some burden on compiler vendors. However, the first
 criteria above ensures that the functions to be changes are in some sense
-simple. Bearing in mind that both GCC and clang support this to some extent. 
-GCC already declares the more complicated
-functions \code{std::exp} and \code{std::sqrt} to be \constexpr. While clang
-does not currently support \constexpr for \code{std::sqrt}, it does offer it as
-a builtin and is able to use it to perform compile time computations, constant
+simple. Both GCC and clang already support this to some extent. 
+GCC already declares the majority of functions as \constexpr, such as
+\code{std::sqrt}, \code{std::exp}, \code{std::lgamma}, etc.
+While clang
+does not it does offer some functions as 
+builtins and is able to use it to perform compile time computations, constant
 propagation and so on. It therefore hoped that any burden implicit in this
 proposal is minimal.
 
@@ -95,7 +100,9 @@ operations are already declared \constexpr, this suggests that it may be
 possible to utilize a field which captures enough of the properties of numeric
 types in order to be useful in formulating criteria for the application of
 \constexpr. The rational numbers are the natural candidate since all valid
-values of numeric types are elements of this set. 
+values of numeric types are elements of this set, the rationals close over
+$+,-,\times,/$ and functions such as \code{exp}, \code{sqrt}, \code{cos},
+\code{sin} and so on are excluded.
 
 The subtlety of global flags being set upon encountering floating-point
 exceptions presents a challenge. If all functions which can set such flags are
