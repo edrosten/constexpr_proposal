@@ -261,10 +261,10 @@ understanding that the others are similar in this regard.
 		\code{int isfinite(float x)} & Yes &
 	\\
 	\hline
-		\code{int isinf(float x)} & Yes & \constexpr of dubious utility 
+		\code{int isinf(float x)} & Yes & $\dagger$
 	\\
 	\hline
-		\code{int isnan(float x)} & Yes & \constexpr of dubious utility 
+		\code{int isnan(float x)} & Yes & $\dagger$ 
 	\\
 	\hline
 		\code{int isnormal(float x)} & Yes &
@@ -290,7 +290,7 @@ understanding that the others are similar in this regard.
 	\hline
 		\code{int isunordered(float x, float y)} & Yes &
 	\end{tabular}
-\caption{Functions declared in \S 26.9.4 which close on the rationals.}
+\caption{Functions declared in \S 26.9.4 which close on the rationals. $\dagger$ --- no utility being declared \constexpr in of itself, but should be tagged \constexpr so that it can be incorporated into \constexpr functions since the latter may be called in  non-\constexpr contexts.}
 \label{tab:26.9.4}
 \end{table}
 
