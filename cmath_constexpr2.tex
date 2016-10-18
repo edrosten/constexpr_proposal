@@ -1,6 +1,8 @@
 \documentclass[prd,preprint,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
 
 \usepackage{xspace} %Dude this will blow your mind!
+\usepackage{amsthm}
+
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
 \newcommand{\header}[1]{{\tt <#1>}}
@@ -13,7 +15,7 @@
 \newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
-\newtheorem{criteria}{Citeria}
+\newtheorem*{proposal*}{Proposal}
 
 \begin{document}
 
@@ -40,15 +42,14 @@ From inspection of \cmath, it may
 not be immediately obvious precisely which functions should be declared
 \constexpr. To put the application of \constexpr on a rigorous footing, we
 propose the following:
-\begin{criteria}
+\begin{proposal*}
 	A function in \cmath\ shall be declared \constexpr if:
 	\begin{enumerate}
 		\item When taken to act on the set of extended rational numbers, the function is closed;
 		
 		\item The function does not modify any if its arguments which have external visibility.
 	\end{enumerate}
-\label{cri:rational}	
-\end{criteria}
+\end{proposal*}
 
 It may seem that these criteria are insufficiently restrictive since various
 functions satisfying both may, under certain conditions, set global flags.
@@ -112,7 +113,7 @@ exceptions presents a challenge. If all functions which can set such flags are
 excluded from the list to tag \constexpr, then the remaining list is rather
 sparse. To achieve something more useful suggests expanding the set to include
 those functions which are `simple enough'. These considerations lead to the
-first condition of criteria~\ref{cri:rational}.
+first condition of the proposal.
 Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
 satisfying this criterion and states whether or not they pass the second
 criterion as well. To reduce space, the following convention is observed. The
