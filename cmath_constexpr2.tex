@@ -7,6 +7,7 @@
 \newcommand{\code}[1]{{\tt #1}}
 \newcommand{\header}[1]{{\tt <#1>}}
 \newcommand{\cmath}{\header{cmath}}
+\newcommand{\cstdlib}{\header{cstdlib}}
 
 \newcommand{\FEINVALID}{{\tt FE\_INVALID}}
 \newcommand{\FEDIVBYZERO}{{\tt FE\_DIVBYZERO}}
@@ -20,27 +21,42 @@
 \begin{document}
 
 
-\title{\constexpr for \cmath}
+\title{\constexpr for \cmath\ and \cstdlib}
 \author{Edward J.~Rosten \& Oliver J.~Rosten}
 \date{\today}
+
+\begin{abstract}
+
+We propose simple criteria for selecting functions in \cmath\ which should be
+declared \constexpr. There is a small degree of overlap with \cstdlib.
+ The essential aim is to transparently select a sufficiently large portion of \cmath\ 
+in order to be useful but without placing too much burden on compiler vendors.
+	
+\end{abstract}
+
+
 \maketitle
 
 \section{Introduction}
 
-We propose simple criteria for selecting functions in \cmath\ which should be
-declared \constexpr. Applying this, a list of such functions is drawn up.
+This paper seeks to rectify the current absence of \constexpr in
+\cmath\ (and also \cstdlib), so as to broaden the range of numeric computations that can be
+performed using standard library facilities. While in principle almost every function
+in \cmath\ could be declared \constexpr, we strike a balance between coverage and onus on compiler vendors.
+
 
 \section{Motivation \& Scope}
 
 The introduction of \constexpr has facilitated intuitive compile-time
-programming. This paper seeks to rectify the current absence of \constexpr in
-\cmath, in order to broaden the range of numeric computations that can be
-performed using standard library facilities. In this proposal we are restricting
-the functions to those which are in a sense no more complicated than the
-currently supported operations (\Operators).
-From inspection of \cmath, it may
+programming. However, not a single function in \cmath\ is currently declared \constexpr which places
+artificial restrictions on what can be done at compile-time within the standard library.
+Nevertheless, from casual inspection of \cmath, it may
 not be immediately obvious precisely which functions should be declared
-\constexpr. To put the application of \constexpr on a rigorous footing, we
+\constexpr. In this paper, we seek an organizing principle which selects functions
+which are in a sense no more complicated than the elementary arithmetic operations,
+(\Operators). The is justified since the latter already support \constexpr.
+
+To put the application of \constexpr on a rigorous footing, we
 propose the following:
 \begin{proposal*}
 	A function in \cmath\ shall be declared \constexpr if:
@@ -53,7 +69,7 @@ propose the following:
 
 It may seem that these criteria are insufficiently restrictive since various
 functions satisfying both may, under certain conditions, set global flags.
-Specifically \code{errno} may be set and/or the various floating-point
+Specifically, \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
 \FEINEXACT\ may be raised. The latter issue is 
 faced by the standard
@@ -61,20 +77,21 @@ arithmetic operators but these are nevertheless available for use in constant
 expressions. The proposed strategy is to mimic the behaviour of the arithmetic
 operators.
 
-Specifically, functions declared \constexpr, \emph{when used in a \constexpr
+To be precise, functions declared \constexpr, \emph{when used in a \constexpr
 context}, should give a compiler error if division by zero, domain errors or
 overflows occur. When not used in a \constexpr context, the various global
 flags should be set as normal. This distinction between these two contexts
 implies that any implementation cannot be done as a pure library extension.
 Consequently, there will be some burden on compiler vendors. However, the first
 criterion above ensures that the functions to be changed are in some sense
-simple. Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
-GCC declares the majority of functions as \constexpr, including
-\code{std::sqrt}, \code{std::exp}, \code{std::lgamma}, etc.
-While clang
-does not, it does offer some functions as 
+simple.
+
+Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
+Indeed, GCC 5.3.0 declares all functions, with the exception of those taking a pointer argument
+(cf.\ the second criterion), as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is available (indeed, this implementation goes beyond what we propose).
+While clang does not go nearly as far as GCC, it does offer some functions as 
 builtins and is able to use them to perform compile time computations, constant
-propagation and so on. It is therefore hoped that any burden implicit in this
+propagation and so on. It is therefore hoped that any burden on compiler vendors implicit in this
 proposal is minimal.
 
 \section{Impact On the Standard}
@@ -88,7 +105,8 @@ depending on whether or not they are used in a \constexpr context.
 \section{Design Decisions}
 
 There is at least one natural candidate in \header{cmath}, namely $\code{abs}$,
-to which \constexpr should be applied. But beyond this, it is desirable to
+to which \constexpr should be applied, not least because this has already been proposed
+for \code{complex::abs}~\cite{AP-complex}. But beyond this function, it is desirable to
 apply \constexpr throughout \cmath\ in a consistent manner. Ideally, one would
 like one or more criteria rooted in mathematics. However, the reality is that
 this insufficiently restrictive. Nevertheless, mathematics was our starting
@@ -115,7 +133,7 @@ sparse. To achieve something more useful suggests expanding the set to include
 those functions which are `simple enough'. These considerations lead to the
 first condition of the proposal.
 Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
-satisfying this criterion and states whether or not they pass the second
+satisfying this criterion and indicate whether or not they pass the second
 criterion as well. To reduce space, the following convention is observed. The
 functions listed in section 26.9 are divided into blocks of closely related
 functions such as those shown in \ref{tab:example}. 
@@ -136,7 +154,7 @@ functions such as those shown in \ref{tab:example}.
 \end{table}
 Note that while the first three functions are overloads, the fourth and fifth
 have differing names.  When classifying those functions which satisfy the first
-criterion, we will give just the first function in each such block, with the
+criterion, we will present just the first function in each such block, with the
 understanding that the others are similar in this regard.
 
 \begin{table}[h]
@@ -298,5 +316,9 @@ understanding that the others are similar in this regard.
 \section{Technical Specifications}
 
 % TO DO
+
+\begin{thebibliography}{1}
+	\bibitem{AP-complex} Antony Polukhin, Constexpr for std::complex
+\end{thebibliography}
 
 \end{document}
