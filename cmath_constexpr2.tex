@@ -16,6 +16,8 @@
 \newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
+\newcommand{\highlight}[1]{{\bf #1}}
+
 \newtheorem*{proposal*}{Proposal}
 
 \begin{document}
@@ -109,7 +111,7 @@ depending on whether or not they are used in a \constexpr context.
 There is at least one natural candidate in \header{cmath}, namely $\code{abs}$,
 to which \constexpr should be applied, not least because this has already been proposed
 for \code{complex::abs}~\cite{AP-complex}. But beyond this function, it is desirable to
-apply \constexpr throughout \cmath\ in a consistent manner. Ideally, one would
+apply \constexpr throughout \cmath\ in a consistent manner. For this purpose, ideally one would
 like one or more criteria rooted in mathematics. However, the reality is that
 this insufficiently restrictive. Nevertheless, mathematics was our starting
 point; as such, any condition on functions to be \constexpr must select the
@@ -315,9 +317,46 @@ understanding that the others are similar in this regard.
 \label{tab:26.9.4}
 \end{table}
 
+
 \section{Technical Specifications}
 
-% TO DO
+\subsection{Modifictions to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
+
+\code{namespace std\{
+
+\ldots
+
+\highlight{constexpr} int abs(int j);
+
+\highlight{constexpr}  long int abs(long int j);
+
+\highlight{constexpr}  long long int abs(long long int j);
+
+\highlight{constexpr}  float abs(float j);
+
+\highlight{constexpr} double abs(double j);
+
+\highlight{constexpr} long double abs(long double j);
+
+\vspace{2ex}
+
+\highlight{constexpr} long int labs(long int j);
+
+\highlight{constexpr}  long long int llabs(long long int j);
+
+\vspace{2ex}
+
+\highlight{constexpr} div\_t div(int numer, int denom);
+
+\highlight{constexpr} ldiv\_t div(long int numer, long int denom); // see 17.2
+
+\highlight{constexpr} lldiv\_t div(long long int numer, long long int denom); // see 17.2
+
+\highlight{constexpr} ldiv\_t ldiv(long int numer, long int denom);
+
+\highlight{constexpr} lldiv\_t lldiv(long long int numer, long long int denom);	
+
+\}}
 
 \begin{thebibliography}{1}
 	\bibitem{AP-complex} Antony Polukhin, Constexpr for std::complex
