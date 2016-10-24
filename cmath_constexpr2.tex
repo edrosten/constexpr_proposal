@@ -348,9 +348,9 @@ understanding that the others are similar in this regard.
 
 \highlight{constexpr} div\_t div(int numer, int denom);
 
-\highlight{constexpr} ldiv\_t div(long int numer, long int denom); // see 17.2
+\highlight{constexpr} ldiv\_t div(long int numer, long int denom); // see [library.c]
 
-\highlight{constexpr} lldiv\_t div(long long int numer, long long int denom); // see 17.2
+\highlight{constexpr} lldiv\_t div(long long int numer, long long int denom); // see [library.c]
 
 \highlight{constexpr} ldiv\_t ldiv(long int numer, long int denom);
 
@@ -368,11 +368,11 @@ namespace std\{
 
 \ldots
 
-float acos(float x); // see 17.2
+float acos(float x); // see [library.c]
 
 double acos(double x);
 
-long double acos(long double x); // see 17.2
+long double acos(long double x); // see [library.c]
 
 float acosf(float x);
 
@@ -380,11 +380,11 @@ long double acosl(long double x);
 
 \ldots
 
-float frexp(float value, int* exp); // see 17.2
+float frexp(float value, int* exp); // see [library.c]
 
 double frexp(double value, int* exp);
 
-long double frexp(long double value, int* exp); // see 17.2
+long double frexp(long double value, int* exp); // see [library.c]
 
 float frexpf(float value, int* exp);
 
@@ -392,11 +392,11 @@ long double frexpl(long double value, int* exp);
 
 \vspace{2ex}
 
-\highlight{constexpr} int ilogb(float x); // see 17.2
+\highlight{constexpr} int ilogb(float x); // see [library.c]
 
 \highlight{constexpr} int ilogb(double x);
 
-\highlight{constexpr} int ilogb(long double x); // see 17.2
+\highlight{constexpr} int ilogb(long double x); // see [library.c]
 
 \highlight{constexpr} int ilogbf(float x);
 
@@ -404,21 +404,21 @@ long double frexpl(long double value, int* exp);
 
 \vspace{2ex}
 
-\highlight{constexpr} float ldexp(float x, int exp); // see 17.2
+\highlight{constexpr} float ldexp(float x, int exp); // see [library.c]
 
 \highlight{constexpr} double ldexp(double x, int exp);
 
-\highlight{constexpr} long double ldexp(long double x, int exp); // see 17.2
+\highlight{constexpr} long double ldexp(long double x, int exp); // see [library.c]
 
 \highlight{constexpr} float ldexpf(float x, int exp);
 
 \highlight{constexpr} long double ldexpl(long double x, int exp);
 
-float log(float x); // see 17.2
+float log(float x); // see [library.c]
 
 double log(double x);
 
-long double log(long double x); // see 17.2
+long double log(long double x); // see [library.c]
 
 float logf(float x);
 
@@ -426,11 +426,11 @@ long double logl(long double x);
 
 \vspace{2ex}
 
-float log10(float x); // see 17.2
+float log10(float x); // see [library.c]
 
 double log10(double x);
 
-long double log10(long double x); // see 17.2
+long double log10(long double x); // see [library.c]
 
 float log10f(float x);
 
@@ -438,11 +438,11 @@ long double log10l(long double x);
 
 \vspace{2ex}
 
-float log1p(float x); // see 17.2
+float log1p(float x); // see [library.c]
 
 double log1p(double x);
 
-long double log1p(long double x); // see 17.2
+long double log1p(long double x); // see [library.c]
 
 float log1pf(float x);
 
@@ -450,11 +450,11 @@ long double log1pl(long double x);
 
 \vspace{2ex}
 
-float log2(float x); // see 17.2
+float log2(float x); // see [library.c]
 
 double log2(double x);
 
-long double log2(long double x); // see 17.2
+long double log2(long double x); // see [library.c]
 
 float log2f(float x);
 
@@ -462,11 +462,11 @@ long double log2l(long double x);
 
 \vspace{2ex}
 
-\highlight{constexpr} float logb(float x); // see 17.2
+\highlight{constexpr} float logb(float x); // see [library.c]
 
 \highlight{constexpr} double logb(double x);
 
-\highlight{constexpr} long double logb(long double x); // see 17.2
+\highlight{constexpr} long double logb(long double x); // see [library.c]
 
 \highlight{constexpr} float logbf(float x);
 
@@ -474,11 +474,11 @@ long double log2l(long double x);
 
 \vspace{2ex}
 
-float modf(float value, float* iptr); // see 17.2
+float modf(float value, float* iptr); // see [library.c]
 
 double modf(double value, double* iptr);
 
-long double modf(long double value, long double* iptr); // see 17.2
+long double modf(long double value, long double* iptr); // see [library.c]
 
 float modff(float value, float* iptr);
 
@@ -486,11 +486,11 @@ long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
-\highlight{constexpr} float scalbn(float x, int n); // see 17.2
+\highlight{constexpr} float scalbn(float x, int n); // see [library.c]
 
 \highlight{constexpr} double scalbn(double x, int n);
 
-\highlight{constexpr} long double scalbn(long double x, int n); // see 17.2
+\highlight{constexpr} long double scalbn(long double x, int n); // see [library.c]
 
 \highlight{constexpr} float scalbnf(float x, int n);
 
@@ -498,11 +498,11 @@ long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
-\highlight{constexpr} float scalbln(float x, long int n); // see 17.2
+\highlight{constexpr} float scalbln(float x, long int n); // see [library.c]
 
 \highlight{constexpr} double scalbln(double x, long int n);
 
-\highlight{constexpr} long double scalbln(long double x, long int n); // see 17.2
+\highlight{constexpr} long double scalbln(long double x, long int n); // see [library.c]
 
 \highlight{constexpr} float scalblnf(float x, long int n);
 
@@ -510,11 +510,11 @@ long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
-float cbrt(float x); // see 17.2
+float cbrt(float x); // see [library.c]
 
 double cbrt(double x);
 
-long double cbrt(long double x); // see 17.2
+long double cbrt(long double x); // see [library.c]
 
 float cbrtf(float x);
 
