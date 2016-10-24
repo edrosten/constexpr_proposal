@@ -520,6 +520,45 @@ float cbrtf(float x);
 
 long double cbrtl(long double x);
 
+\vspace{2ex}
+
+//  [c.math.abs], absolute values
+
+\highlight{constexpr} int abs(int j);
+
+\highlight{constexpr} long int abs(long int j);
+
+\highlight{constexpr} long long int abs(long long int j);
+
+\highlight{constexpr} float abs(float j);
+
+\highlight{constexpr} double abs(double j);
+
+\highlight{constexpr}long double abs(long double j);
+
+\vspace{2ex}
+
+\highlight{constexpr} float fabs(float x); // see [library.c]
+
+\highlight{constexpr} double fabs(double x);
+
+\highlight{constexpr} long double fabs(long double x); // see [library.c]
+
+\highlight{constexpr} float fabsf(float x);
+
+\highlight{constexpr} long double fabsl(long double x);
+
+\vspace{2ex}
+
+float hypot(float x, float y); // see [library.c]
+
+double hypot(double x, double y);
+
+long double hypot(double x, double y); // see [library.c]
+
+float hypotf(float x, float y);
+
+long double hypotl(long double x, long double y);
 }
 
 
