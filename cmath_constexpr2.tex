@@ -1,7 +1,8 @@
-\documentclass[prd,preprint,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
+\documentclass[prd,twocolumn,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
 
 \usepackage{xspace} %Dude this will blow your mind!
 \usepackage{amsthm}
+\usepackage{color}
 
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
@@ -16,7 +17,7 @@
 \newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
-\newcommand{\highlight}[1]{{\bf #1}}
+\newcommand{\highlight}[1]{{\color{red} #1}}
 
 \newtheorem*{proposal*}{Proposal}
 
@@ -139,7 +140,7 @@ first condition of the proposal.
 Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
 satisfying this criterion and indicate whether or not they pass the second
 criterion as well. To reduce space, the following convention is observed. The
-functions listed in section 26.9 are divided into blocks of closely related
+functions listed in [c.math] are divided into blocks of closely related
 functions such as those shown in \ref{tab:example}. 
 \begin{table}
 	\begin{tabular}{l}
@@ -161,32 +162,40 @@ have differing names.  When classifying those functions which satisfy the first
 criterion, we will present just the first function in each such block, with the
 understanding that the others are similar in this regard.
 
+When listing functions satisfying the first criterion, we supply various comments in the
+third column of the tables. The following shorthand is observed:
+\begin{enumerate}
+	\item G: May set global variable;
+	
+	\item V: Modifies argument with external visibility.
+\end{enumerate}
+
 \begin{table}[h]
 	\begin{tabular}{lcc}
 		Function & Pass & Comment
 	\\
 	\hline \hline
-		\code{float frexp(float value, int* exp)} & No & Modifies argument with external visibility
+		\code{float frexp(float value, int* exp)} & No & V
 	\\
 	\hline
-		\code{int ilogb(float arg)} & Yes & May set global variable
+		\code{int ilogb(float arg)} & Yes & G
 	\\
 	\hline
-		\code{float logb(float arg)} & Yes & May set global variable
+		\code{float logb(float arg)} & Yes & G
 	\\
 	\hline
-		\code{float ldexp(float x, int exp)} & Yes & May set global variable
+		\code{float ldexp(float x, int exp)} & Yes & G
 	\\
 	\hline
-		\code{float modf(float value, float* iptr)} & No & Modifies argument with external visibility
+		\code{float modf(float value, float* iptr)} & No & V
 	\\
 	\hline
-		\code {float scalbn(float x, int n)} & Yes & May set global variable
+		\code {float scalbn(float x, int n)} & Yes & G
 	\\
 	\hline
-		\code {float scalbln(float x, long int n)} & Yes & May set global variable
+		\code {float scalbln(float x, long int n)} & Yes & G
 	\end{tabular}
-\caption{Functions declared in \S 26.9.1 which close on the rationals.}
+\caption{Functions declared in [cmath.syn] which close on the rationals.}
 \label{tab:26.9.1}
 \end{table}
 
@@ -210,55 +219,55 @@ understanding that the others are similar in this regard.
 		Function & Pass & Comment
 	\\
 	\hline \hline
-		\code{float ceil(float x)} &  Yes & Some implementations may set a global variable
+		\code{float ceil(float x)} &  Yes & G$\star$
 	\\
 	\hline
-		\code{float floor(float x)} & Yes & Some implementations may set a global variable
+		\code{float floor(float x)} & Yes & G$\star$
 	\\
 	\hline
 		\code{float nearbyint(float x)} & Yes &
 	\\
 	\hline
-		\code{float rint(float x)} & Yes & May set a global variable
+		\code{float rint(float x)} & Yes & G
 	\\
 	\hline
-		\code{long int lrint(float x)} &  Yes & May set a global variable
+		\code{long int lrint(float x)} &  Yes & G
 	\\
 	\hline
-		\code{long long int llrint(float x)} & Yes & May set a global variable 
+		\code{long long int llrint(float x)} & Yes & G
 	\\
 	\hline
-		\code{float round(float x)} & Yes & May set a global variable
+		\code{float round(float x)} & Yes & G
 	\\
 	\hline
-		\code{float lround(float x)} & Yes & May set a global variable
+		\code{float lround(float x)} & Yes & G
 	\\
 	\hline
-		\code{float llround(float x)} & Yes & May set a global variable
+		\code{float llround(float x)} & Yes & G
 	\\
 	\hline
-		\code{float trunc(float x)} &  Yes & May set a global variable
+		\code{float trunc(float x)} &  Yes & G
 	\\
 	\hline
-		\code{float fmod(float x, float y)} & Yes & May set a global variable
+		\code{float fmod(float x, float y)} & Yes & G
 	\\
 	\hline
-		\code{float remainder(float x, float y} & Yes & May set a global variable
+		\code{float remainder(float x, float y} & Yes & G
 	\\
 	\hline
-		\code{float remquo(float x, float y, int* quo)} & No & Modifies argument with external visibility
+		\code{float remquo(float x, float y, int* quo)} & No & V
 	\\
 	\hline
 		\code{float copysign(float x, float y)} & Yes &
 	\\
 	\hline
-		\code{float nextafter(float x, float y)} & Yes & May set a global variable
+		\code{float nextafter(float x, float y)} & Yes & G
 	\\
 	\hline
-		\code{float nexttoward(float x, long double y)} & Yes & May set a global variable
+		\code{float nexttoward(float x, long double y)} & Yes & G
 	\\
 	\hline
-		\code{float fdim(float x, float y)} & Yes & May set a global variable
+		\code{float fdim(float x, float y)} & Yes & G
 	\\
 	\hline
 		\code{float fmax(float x, float y)} & Yes &
@@ -267,9 +276,9 @@ understanding that the others are similar in this regard.
 		\code{float fmin(float x, float y)} & Yes &
 	\\
 	\hline
-		\code{float fma(float x, float y, float z)} & Yes & May set a global variable
+		\code{float fma(float x, float y, float z)} & Yes & G
 	\end{tabular}
-\caption{Functions declared in \S 26.9.3 which close on the rationals.}
+\caption{Functions declared in \S 26.9.3 which close on the rationals. $\star$ --- implementation dependent.}
 \label{tab:26.9.3}
 \end{table}
 
@@ -318,9 +327,15 @@ understanding that the others are similar in this regard.
 \end{table}
 
 
+
+\begin{widetext}
+
+
 \section{Technical Specifications}
 
+
 \subsection{Modifictions to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
+
 
 \code{namespace std\{
 
@@ -413,6 +428,8 @@ long double frexpl(long double value, int* exp);
 \highlight{constexpr} float ldexpf(float x, int exp);
 
 \highlight{constexpr} long double ldexpl(long double x, int exp);
+
+\vspace{2ex}
 
 float log(float x); // see [library.c]
 
@@ -842,7 +859,7 @@ long double nanl(const char* tagp);
 
 \highlight{constexpr} int isinf(double x);
 
-\highlight{constexpr}int isinf(long double x);
+\highlight{constexpr} int isinf(long double x);
 
 \vspace{2ex}
 
@@ -934,6 +951,9 @@ long double nanl(const char* tagp);
 
 	\highlight{constexpr} long double abs(long double j);
 }
+
+
+\end{widetext}
 
 \begin{acknowledgments}
 	We would like to thank Walter E.~Brown, Daniel Kr\"ugler and Antony Polukhin for 
