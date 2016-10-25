@@ -915,9 +915,30 @@ long double nanl(const char* tagp);
 \highlight{constexpr} int isunordered(double x, double y);
 
 \highlight{constexpr} int isunordered(long double x, long double y);
-
 }
 
+\subsection{Modifications to  ``Absolute Values''  [c.math.abs]}
+
+\ldots
+
+\code{
+	\highlight{constexpr}  int abs(int j);
+	
+	\highlight{constexpr} long int abs(long int j);
+	
+	\highlight{constexpr} long long int abs(long long int j);
+
+	\highlight{constexpr} float abs(float j);
+	
+	\highlight{constexpr}  double abs(double j);
+
+	\highlight{constexpr} long double abs(long double j);
+}
+
+\begin{acknowledgments}
+	We would like to thank Walter E.~Brown, Daniel Kr\"ugler and Antony Polukhin for 
+	encouragement and advice.
+\end{acknowledgments}
 
 \begin{thebibliography}{1}
 	\bibitem{AP-complex} Antony Polukhin, Constexpr for std::complex
