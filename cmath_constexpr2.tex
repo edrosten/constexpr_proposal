@@ -21,6 +21,11 @@
 
 \newtheorem*{proposal*}{Proposal}
 
+\makeatletter
+\def\l@subsection#1#2{}
+\def\l@subsubsection#1#2{}
+\makeatother
+
 \begin{document}
 
 
@@ -195,7 +200,7 @@ third column of the tables. The following shorthand is observed:
 	\hline
 		\code {float scalbln(float x, long int n)} & Yes & G
 	\end{tabular}
-\caption{Functions declared in [cmath.syn] which close on the rationals.}
+\caption{Various functions declared in [cmath.syn] which close on the rationals.}
 \label{tab:26.9.1}
 \end{table}
 
@@ -210,7 +215,7 @@ third column of the tables. The following shorthand is observed:
 	\hline
 		\code{float fabs(float x)} & Yes
 	\end{tabular}
-\caption{Functions declared in \S 26.9.2 which close on the rationals.}
+\caption{Absolute values declared in [cmath.syn]  which close on the rationals.}
 \label{tab:26.9.2}
 \end{table}
 
@@ -278,7 +283,7 @@ third column of the tables. The following shorthand is observed:
 	\hline
 		\code{float fma(float x, float y, float z)} & Yes & G
 	\end{tabular}
-\caption{Functions declared in \S 26.9.3 which close on the rationals. $\star$ --- implementation dependent.}
+\caption{Additional functions declared in [cmath.syn]  which close on the rationals. $\star$ --- implementation dependent.}
 \label{tab:26.9.3}
 \end{table}
 
@@ -322,7 +327,7 @@ third column of the tables. The following shorthand is observed:
 	\hline
 		\code{int isunordered(float x, float y)} & Yes &
 	\end{tabular}
-\caption{Functions declared in \S 26.9.4 which close on the rationals. $\dagger$ --- no utility being declared \constexpr in of itself, but should be tagged \constexpr so that it can be incorporated into \constexpr functions since the latter may be called in  non-\constexpr contexts.}
+\caption{Comparison operators belonging to [cmath.syn] which close on the rationals. $\dagger$ --- no utility being declared \constexpr in of itself, but should be tagged \constexpr so that it can be incorporated into \constexpr functions since the latter may be called in  non-\constexpr contexts.}
 \label{tab:26.9.4}
 \end{table}
 
