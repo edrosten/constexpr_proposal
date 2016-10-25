@@ -559,6 +559,363 @@ long double hypot(double x, double y); // see [library.c]
 float hypotf(float x, float y);
 
 long double hypotl(long double x, long double y);
+
+\vspace{2ex}
+
+// [c.math.hypot3], three-dimensional hypotenuse
+
+float hypot(float x, float y, float z);
+
+double hypot(double x, double y, double z);
+
+long double hypot(long double x, long double y, long double z);
+
+\ldots
+
+\highlight{constexpr} float ceil(float x); // see [library.c]
+
+\highlight{constexpr} double ceil(double x);
+
+\highlight{constexpr} long double ceil(long double x); // see [library.c]
+
+\highlight{constexpr} float ceilf(float x);
+
+\highlight{constexpr} long double ceill(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float floor(float x); // see [library.c]
+
+\highlight{constexpr} double floor(double x);
+
+\highlight{constexpr} long double floor(long double x); // see [library.c]
+
+\highlight{constexpr} float floorf(float x);
+
+\highlight{constexpr} long double floorl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float nearbyint(float x); // see [library.c]
+
+\highlight{constexpr} double nearbyint(double x);
+
+\highlight{constexpr} long double nearbyint(long double x); // see [library.c]
+
+\highlight{constexpr} float nearbyintf(float x);
+
+\highlight{constexpr} long double nearbyintl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float rint(float x); // see [library.c]
+
+\highlight{constexpr} double rint(double x);
+
+\highlight{constexpr} long double rint(long double x); // see [library.c]
+
+\highlight{constexpr} float rintf(float x);
+
+\highlight{constexpr} long double rintl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} long int lrint(float x); // see [library.c]
+
+\highlight{constexpr} long int lrint(double x);
+
+\highlight{constexpr} long int lrint(long double x); // see [library.c]
+
+\highlight{constexpr} long int lrintf(float x);
+
+\highlight{constexpr} long int lrintl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} long long int llrint(float x); // see [library.c]
+
+\highlight{constexpr} long long int llrint(double x);
+
+\highlight{constexpr} long long int llrint(long double x); // see [library.c]
+
+\highlight{constexpr} long long int llrintf(float x);
+
+\highlight{constexpr} long long int llrintl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float round(float x); // see [library.c]
+
+\highlight{constexpr} double round(double x);
+
+\highlight{constexpr} long double round(long double x); // see [library.c]
+
+\highlight{constexpr} float roundf(float x);
+
+\highlight{constexpr} long double roundl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} long int lround(float x); // see [library.c]
+
+\highlight{constexpr} long int lround(double x);
+
+\highlight{constexpr} long int lround(long double x); // see [library.c]
+
+\highlight{constexpr} long int lroundf(float x);
+
+\highlight{constexpr} long int lroundl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} long long int llround(float x); // see [library.c]
+
+\highlight{constexpr} long long int llround(double x);
+
+\highlight{constexpr} long long int llround(long double x); // see [library.c]
+
+\highlight{constexpr} long long int llroundf(float x);
+
+\highlight{constexpr} long long int llroundl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float trunc(float x); // see [library.c]
+
+\highlight{constexpr} double trunc(double x);
+
+\highlight{constexpr} long double trunc(long double x); // see [library.c]
+
+\highlight{constexpr} float truncf(float x);
+
+\highlight{constexpr} long double truncl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float fmod(float x, float y); // see [library.c]
+
+\highlight{constexpr} double fmod(double x, double y);
+
+\highlight{constexpr} long double fmod(long double x, long double y); // see [library.c]
+
+\highlight{constexpr} float fmodf(float x, float y);
+
+\highlight{constexpr} long double fmodl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} float remainder(float x, float y); // see [library.c]
+
+\highlight{constexpr} double remainder(double x, double y);
+
+\highlight{constexpr} long double remainder(long double x, long double y); // see [library.c]
+
+\highlight{constexpr} float remainderf(float x, float y);
+
+\highlight{constexpr} long double remainderl(long double x, long double y);
+
+\vspace{2ex}
+
+float remquo(float x, float y, int* quo); // see [library.c]
+
+double remquo(double x, double y, int* quo);
+
+long double remquo(long double x, long double y, int* quo); // see [library.c]
+
+float remquof(float x, float y, int* quo);
+
+long double remquol(long double x, long double y, int* quo);
+
+\vspace{2ex}
+
+\highlight{constexpr} float copysign(float x, float y); // see [library.c]
+
+\highlight{constexpr} double copysign(double x, double y);
+
+\highlight{constexpr} long double copysign(long double x, long double y); // see [library.c]
+
+\highlight{constexpr} float copysignf(float x, float y);
+
+\highlight{constexpr} long double copysignl(long double x, long double y);
+
+\vspace{2ex}
+
+double nan(const char* tagp);
+
+float nanf(const char* tagp);
+
+long double nanl(const char* tagp);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float nextafter(float x, float y); // see [library.c]
+
+\highlight{constexpr}  double nextafter(double x, double y);
+
+\highlight{constexpr}  long double nextafter(long double x, long double y); // see [library.c]
+
+\highlight{constexpr}  float nextafterf(float x, float y);
+
+\highlight{constexpr}  long double nextafterl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float nexttoward(float x, long double y); // see [library.c]
+
+\highlight{constexpr}  double nexttoward(double x, long double y);
+
+\highlight{constexpr}  long double nexttoward(long double x, long double y); // see [library.c]
+
+\highlight{constexpr}  float nexttowardf(float x, long double y);
+
+\highlight{constexpr}  long double nexttowardl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float fdim(float x, float y); // see [library.c]
+
+\highlight{constexpr}  double fdim(double x, double y);
+
+\highlight{constexpr}  long double fdim(long double x, long double y); // see [library.c]
+
+\highlight{constexpr}  float fdimf(float x, float y);
+
+\highlight{constexpr}  long double fdiml(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float fmax(float x, float y); // see [library.c]
+
+\highlight{constexpr}  double fmax(double x, double y);
+
+\highlight{constexpr}  long double fmax(long double x, long double y); // see [library.c]
+
+\highlight{constexpr}  float fmaxf(float x, float y);
+
+\highlight{constexpr}  long double fmaxl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} float fmin(float x, float y); // see [library.c]
+
+\highlight{constexpr}  double fmin(double x, double y);
+
+\highlight{constexpr}  long double fmin(long double x, long double y); // see [library.c]
+
+\highlight{constexpr}  float fminf(float x, float y);
+
+\highlight{constexpr} long double fminl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float fma(float x, float y, float z); // see [library.c]
+
+\highlight{constexpr}  double fma(double x, double y, double z);
+
+\highlight{constexpr}  long double fma(long double x, long double y, long double z); // see [library.c]
+
+\highlight{constexpr}  float fmaf(float x, float y, float z);
+
+\highlight{constexpr}  long double fmal(long double x, long double y, long double z);
+
+\vspace{2ex}
+
+// [c.math.fpclass], classification / comparison functions:
+
+\highlight{constexpr} int fpclassify(float x);
+
+\highlight{constexpr} int fpclassify(double x);
+
+\highlight{constexpr} int fpclassify(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isfinite(float x);
+
+\highlight{constexpr} int isfinite(double x);
+
+\highlight{constexpr} int isfinite(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isinf(float x);
+
+\highlight{constexpr} int isinf(double x);
+
+\highlight{constexpr}int isinf(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isnan(float x);
+
+\highlight{constexpr} int isnan(double x);
+
+\highlight{constexpr} int isnan(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isnormal(float x);
+
+\highlight{constexpr} int isnormal(double x);
+
+\highlight{constexpr} int isnormal(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int signbit(float x);
+
+\highlight{constexpr} int signbit(double x);
+
+\highlight{constexpr} int signbit(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isgreater(float x, float y);
+
+\highlight{constexpr} int isgreater(double x, double y);
+
+\highlight{constexpr} int isgreater(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isgreaterequal(float x, float y);
+
+\highlight{constexpr} int isgreaterequal(double x, double y);
+
+\highlight{constexpr} int isgreaterequal(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isless(float x, float y);
+
+\highlight{constexpr} int isless(double x, double y);
+
+\highlight{constexpr} int isless(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int islessequal(float x, float y);
+
+\highlight{constexpr} int islessequal(double x, double y);
+
+\highlight{constexpr} int islessequal(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int islessgreater(float x, float y);
+
+\highlight{constexpr} int islessgreater(double x, double y);
+
+\highlight{constexpr} int islessgreater(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isunordered(float x, float y);
+
+\highlight{constexpr} int isunordered(double x, double y);
+
+\highlight{constexpr} int isunordered(long double x, long double y);
+
 }
 
 
