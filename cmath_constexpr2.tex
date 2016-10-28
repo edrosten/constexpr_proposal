@@ -30,8 +30,22 @@
 
 
 \title{\constexpr for \cmath\ and \cstdlib}
-\author{Edward J.~Rosten \& Oliver J.~Rosten}
-\date{\today}
+%\author{Edward J.~Rosten \& Oliver J.~Rosten}
+%\date{\today}
+
+\author{
+\hspace{11.5em}
+\begin{tabular}{ll}
+	Document \#: &
+\\
+	Date: & \today
+\\
+	Project: & Programming Language C++, Library Working Group
+\\
+	Reply to: & Edward J.\ Rosten / Oliver J.\ Rosten 
+	{\tt $<$first-name.rosten@gmail.com$>$}
+\end{tabular}
+}
 
 \begin{abstract}
 
@@ -345,7 +359,11 @@ third column of the tables, observing the following shorthands:
 
 \code{namespace std\{
 
+\vspace{2ex}
+
 \ldots
+
+\vspace{2ex}
 
 \highlight{constexpr} int abs(int j);
 
@@ -382,12 +400,14 @@ third column of the tables, observing the following shorthands:
 \subsection{Modifications to  ``Header \header{cmath} synopsis'' [cmath.syn]}
 
 \code{
-
 \ldots
+\vspace{2ex}
 
 namespace std\{
 
+\vspace{2ex}
 \ldots
+\vspace{2ex}
 
 float acos(float x); // see [library.c]
 
@@ -399,7 +419,9 @@ float acosf(float x);
 
 long double acosl(long double x);
 
+\vspace{2ex}
 \ldots
+\vspace{2ex}
 
 float frexp(float value, int* exp); // see [library.c]
 
@@ -593,7 +615,9 @@ double hypot(double x, double y, double z);
 
 long double hypot(long double x, long double y, long double z);
 
+\vspace{2ex}
 \ldots
+\vspace{2ex}
 
 \highlight{constexpr} float ceil(float x); // see [library.c]
 
@@ -943,6 +967,7 @@ long double nanl(const char* tagp);
 \subsection{Modifications to  ``Absolute Values''  [c.math.abs]}
 
 \ldots
+\vspace{2ex}
 
 \code{
 	\highlight{constexpr}  int abs(int j);
@@ -967,7 +992,7 @@ long double nanl(const char* tagp);
 \end{acknowledgments}
 
 \begin{thebibliography}{1}
-	\bibitem{AP-complex} Antony Polukhin, Constexpr for std::complex
+	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
 \end{thebibliography}
 
 \end{document}
