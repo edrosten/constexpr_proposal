@@ -18,6 +18,7 @@
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
 \newcommand{\highlight}[1]{{\color{red} #1}}
+\newcommand{\stdcomment}[1]{{// {\em see} [#1]}}
 
 \newtheorem*{proposal*}{Proposal}
 
@@ -387,9 +388,9 @@ third column of the tables, observing the following shorthands:
 
 \highlight{constexpr} div\_t div(int numer, int denom);
 
-\highlight{constexpr} ldiv\_t div(long int numer, long int denom); // see [library.c]
+\highlight{constexpr} ldiv\_t div(long int numer, long int denom); \stdcomment{library.c}
 
-\highlight{constexpr} lldiv\_t div(long long int numer, long long int denom); // see [library.c]
+\highlight{constexpr} lldiv\_t div(long long int numer, long long int denom); \stdcomment{library.c}
 
 \highlight{constexpr} ldiv\_t ldiv(long int numer, long int denom);
 
@@ -409,11 +410,11 @@ namespace std\{
 \ldots
 \vspace{2ex}
 
-float acos(float x); // see [library.c]
+float acos(float x); \stdcomment{library.c}
 
 double acos(double x);
 
-long double acos(long double x); // see [library.c]
+long double acos(long double x); \stdcomment{library.c}
 
 float acosf(float x);
 
@@ -423,11 +424,11 @@ long double acosl(long double x);
 \ldots
 \vspace{2ex}
 
-float frexp(float value, int* exp); // see [library.c]
+float frexp(float value, int* exp); \stdcomment{library.c}
 
 double frexp(double value, int* exp);
 
-long double frexp(long double value, int* exp); // see [library.c]
+long double frexp(long double value, int* exp); \stdcomment{library.c}
 
 float frexpf(float value, int* exp);
 
@@ -435,11 +436,11 @@ long double frexpl(long double value, int* exp);
 
 \vspace{2ex}
 
-\highlight{constexpr} int ilogb(float x); // see [library.c]
+\highlight{constexpr} int ilogb(float x); \stdcomment{library.c}
 
 \highlight{constexpr} int ilogb(double x);
 
-\highlight{constexpr} int ilogb(long double x); // see [library.c]
+\highlight{constexpr} int ilogb(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} int ilogbf(float x);
 
@@ -447,11 +448,11 @@ long double frexpl(long double value, int* exp);
 
 \vspace{2ex}
 
-\highlight{constexpr} float ldexp(float x, int exp); // see [library.c]
+\highlight{constexpr} float ldexp(float x, int exp); \stdcomment{library.c}
 
 \highlight{constexpr} double ldexp(double x, int exp);
 
-\highlight{constexpr} long double ldexp(long double x, int exp); // see [library.c]
+\highlight{constexpr} long double ldexp(long double x, int exp); \stdcomment{library.c}
 
 \highlight{constexpr} float ldexpf(float x, int exp);
 
@@ -459,11 +460,11 @@ long double frexpl(long double value, int* exp);
 
 \vspace{2ex}
 
-float log(float x); // see [library.c]
+float log(float x); \stdcomment{library.c}
 
 double log(double x);
 
-long double log(long double x); // see [library.c]
+long double log(long double x); \stdcomment{library.c}
 
 float logf(float x);
 
@@ -471,11 +472,11 @@ long double logl(long double x);
 
 \vspace{2ex}
 
-float log10(float x); // see [library.c]
+float log10(float x); \stdcomment{library.c}
 
 double log10(double x);
 
-long double log10(long double x); // see [library.c]
+long double log10(long double x); \stdcomment{library.c}
 
 float log10f(float x);
 
@@ -483,11 +484,11 @@ long double log10l(long double x);
 
 \vspace{2ex}
 
-float log1p(float x); // see [library.c]
+float log1p(float x); \stdcomment{library.c}
 
 double log1p(double x);
 
-long double log1p(long double x); // see [library.c]
+long double log1p(long double x); \stdcomment{library.c}
 
 float log1pf(float x);
 
@@ -495,11 +496,11 @@ long double log1pl(long double x);
 
 \vspace{2ex}
 
-float log2(float x); // see [library.c]
+float log2(float x); \stdcomment{library.c}
 
 double log2(double x);
 
-long double log2(long double x); // see [library.c]
+long double log2(long double x); \stdcomment{library.c}
 
 float log2f(float x);
 
@@ -507,11 +508,11 @@ long double log2l(long double x);
 
 \vspace{2ex}
 
-\highlight{constexpr} float logb(float x); // see [library.c]
+\highlight{constexpr} float logb(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double logb(double x);
 
-\highlight{constexpr} long double logb(long double x); // see [library.c]
+\highlight{constexpr} long double logb(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float logbf(float x);
 
@@ -519,11 +520,11 @@ long double log2l(long double x);
 
 \vspace{2ex}
 
-float modf(float value, float* iptr); // see [library.c]
+float modf(float value, float* iptr); \stdcomment{library.c}
 
 double modf(double value, double* iptr);
 
-long double modf(long double value, long double* iptr); // see [library.c]
+long double modf(long double value, long double* iptr); \stdcomment{library.c}
 
 float modff(float value, float* iptr);
 
@@ -531,11 +532,11 @@ long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
-\highlight{constexpr} float scalbn(float x, int n); // see [library.c]
+\highlight{constexpr} float scalbn(float x, int n); \stdcomment{library.c}
 
 \highlight{constexpr} double scalbn(double x, int n);
 
-\highlight{constexpr} long double scalbn(long double x, int n); // see [library.c]
+\highlight{constexpr} long double scalbn(long double x, int n); \stdcomment{library.c}
 
 \highlight{constexpr} float scalbnf(float x, int n);
 
@@ -543,11 +544,11 @@ long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
-\highlight{constexpr} float scalbln(float x, long int n); // see [library.c]
+\highlight{constexpr} float scalbln(float x, long int n); \stdcomment{library.c}
 
 \highlight{constexpr} double scalbln(double x, long int n);
 
-\highlight{constexpr} long double scalbln(long double x, long int n); // see [library.c]
+\highlight{constexpr} long double scalbln(long double x, long int n); \stdcomment{library.c}
 
 \highlight{constexpr} float scalblnf(float x, long int n);
 
@@ -555,11 +556,11 @@ long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
-float cbrt(float x); // see [library.c]
+float cbrt(float x); \stdcomment{library.c}
 
 double cbrt(double x);
 
-long double cbrt(long double x); // see [library.c]
+long double cbrt(long double x); \stdcomment{library.c}
 
 float cbrtf(float x);
 
@@ -567,7 +568,7 @@ long double cbrtl(long double x);
 
 \vspace{2ex}
 
-//  [c.math.abs], absolute values
+//  [c.math.abs], {\em absolute values}
 
 \highlight{constexpr} int abs(int j);
 
@@ -583,11 +584,11 @@ long double cbrtl(long double x);
 
 \vspace{2ex}
 
-\highlight{constexpr} float fabs(float x); // see [library.c]
+\highlight{constexpr} float fabs(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double fabs(double x);
 
-\highlight{constexpr} long double fabs(long double x); // see [library.c]
+\highlight{constexpr} long double fabs(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float fabsf(float x);
 
@@ -595,11 +596,11 @@ long double cbrtl(long double x);
 
 \vspace{2ex}
 
-float hypot(float x, float y); // see [library.c]
+float hypot(float x, float y); \stdcomment{library.c}
 
 double hypot(double x, double y);
 
-long double hypot(double x, double y); // see [library.c]
+long double hypot(double x, double y); \stdcomment{library.c}
 
 float hypotf(float x, float y);
 
@@ -607,7 +608,7 @@ long double hypotl(long double x, long double y);
 
 \vspace{2ex}
 
-// [c.math.hypot3], three-dimensional hypotenuse
+// [c.math.hypot3], {\em three-dimensional hypotenuse}
 
 float hypot(float x, float y, float z);
 
@@ -619,11 +620,11 @@ long double hypot(long double x, long double y, long double z);
 \ldots
 \vspace{2ex}
 
-\highlight{constexpr} float ceil(float x); // see [library.c]
+\highlight{constexpr} float ceil(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double ceil(double x);
 
-\highlight{constexpr} long double ceil(long double x); // see [library.c]
+\highlight{constexpr} long double ceil(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float ceilf(float x);
 
@@ -631,11 +632,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float floor(float x); // see [library.c]
+\highlight{constexpr} float floor(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double floor(double x);
 
-\highlight{constexpr} long double floor(long double x); // see [library.c]
+\highlight{constexpr} long double floor(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float floorf(float x);
 
@@ -643,11 +644,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float nearbyint(float x); // see [library.c]
+\highlight{constexpr} float nearbyint(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double nearbyint(double x);
 
-\highlight{constexpr} long double nearbyint(long double x); // see [library.c]
+\highlight{constexpr} long double nearbyint(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float nearbyintf(float x);
 
@@ -655,11 +656,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float rint(float x); // see [library.c]
+\highlight{constexpr} float rint(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double rint(double x);
 
-\highlight{constexpr} long double rint(long double x); // see [library.c]
+\highlight{constexpr} long double rint(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float rintf(float x);
 
@@ -667,11 +668,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} long int lrint(float x); // see [library.c]
+\highlight{constexpr} long int lrint(float x); \stdcomment{library.c}
 
 \highlight{constexpr} long int lrint(double x);
 
-\highlight{constexpr} long int lrint(long double x); // see [library.c]
+\highlight{constexpr} long int lrint(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} long int lrintf(float x);
 
@@ -679,11 +680,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} long long int llrint(float x); // see [library.c]
+\highlight{constexpr} long long int llrint(float x); \stdcomment{library.c}
 
 \highlight{constexpr} long long int llrint(double x);
 
-\highlight{constexpr} long long int llrint(long double x); // see [library.c]
+\highlight{constexpr} long long int llrint(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} long long int llrintf(float x);
 
@@ -691,11 +692,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float round(float x); // see [library.c]
+\highlight{constexpr} float round(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double round(double x);
 
-\highlight{constexpr} long double round(long double x); // see [library.c]
+\highlight{constexpr} long double round(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float roundf(float x);
 
@@ -703,11 +704,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} long int lround(float x); // see [library.c]
+\highlight{constexpr} long int lround(float x); \stdcomment{library.c}
 
 \highlight{constexpr} long int lround(double x);
 
-\highlight{constexpr} long int lround(long double x); // see [library.c]
+\highlight{constexpr} long int lround(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} long int lroundf(float x);
 
@@ -715,11 +716,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} long long int llround(float x); // see [library.c]
+\highlight{constexpr} long long int llround(float x); \stdcomment{library.c}
 
 \highlight{constexpr} long long int llround(double x);
 
-\highlight{constexpr} long long int llround(long double x); // see [library.c]
+\highlight{constexpr} long long int llround(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} long long int llroundf(float x);
 
@@ -727,11 +728,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float trunc(float x); // see [library.c]
+\highlight{constexpr} float trunc(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double trunc(double x);
 
-\highlight{constexpr} long double trunc(long double x); // see [library.c]
+\highlight{constexpr} long double trunc(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float truncf(float x);
 
@@ -739,11 +740,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float fmod(float x, float y); // see [library.c]
+\highlight{constexpr} float fmod(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr} double fmod(double x, double y);
 
-\highlight{constexpr} long double fmod(long double x, long double y); // see [library.c]
+\highlight{constexpr} long double fmod(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr} float fmodf(float x, float y);
 
@@ -751,11 +752,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float remainder(float x, float y); // see [library.c]
+\highlight{constexpr} float remainder(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr} double remainder(double x, double y);
 
-\highlight{constexpr} long double remainder(long double x, long double y); // see [library.c]
+\highlight{constexpr} long double remainder(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr} float remainderf(float x, float y);
 
@@ -763,11 +764,11 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-float remquo(float x, float y, int* quo); // see [library.c]
+float remquo(float x, float y, int* quo); \stdcomment{library.c}
 
 double remquo(double x, double y, int* quo);
 
-long double remquo(long double x, long double y, int* quo); // see [library.c]
+long double remquo(long double x, long double y, int* quo); \stdcomment{library.c}
 
 float remquof(float x, float y, int* quo);
 
@@ -775,11 +776,11 @@ long double remquol(long double x, long double y, int* quo);
 
 \vspace{2ex}
 
-\highlight{constexpr} float copysign(float x, float y); // see [library.c]
+\highlight{constexpr} float copysign(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr} double copysign(double x, double y);
 
-\highlight{constexpr} long double copysign(long double x, long double y); // see [library.c]
+\highlight{constexpr} long double copysign(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr} float copysignf(float x, float y);
 
@@ -795,11 +796,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-\highlight{constexpr}  float nextafter(float x, float y); // see [library.c]
+\highlight{constexpr}  float nextafter(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr}  double nextafter(double x, double y);
 
-\highlight{constexpr}  long double nextafter(long double x, long double y); // see [library.c]
+\highlight{constexpr}  long double nextafter(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr}  float nextafterf(float x, float y);
 
@@ -807,11 +808,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-\highlight{constexpr}  float nexttoward(float x, long double y); // see [library.c]
+\highlight{constexpr}  float nexttoward(float x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr}  double nexttoward(double x, long double y);
 
-\highlight{constexpr}  long double nexttoward(long double x, long double y); // see [library.c]
+\highlight{constexpr}  long double nexttoward(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr}  float nexttowardf(float x, long double y);
 
@@ -819,11 +820,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-\highlight{constexpr}  float fdim(float x, float y); // see [library.c]
+\highlight{constexpr}  float fdim(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr}  double fdim(double x, double y);
 
-\highlight{constexpr}  long double fdim(long double x, long double y); // see [library.c]
+\highlight{constexpr}  long double fdim(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr}  float fdimf(float x, float y);
 
@@ -831,11 +832,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-\highlight{constexpr}  float fmax(float x, float y); // see [library.c]
+\highlight{constexpr}  float fmax(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr}  double fmax(double x, double y);
 
-\highlight{constexpr}  long double fmax(long double x, long double y); // see [library.c]
+\highlight{constexpr}  long double fmax(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr}  float fmaxf(float x, float y);
 
@@ -843,11 +844,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-\highlight{constexpr} float fmin(float x, float y); // see [library.c]
+\highlight{constexpr} float fmin(float x, float y); \stdcomment{library.c}
 
 \highlight{constexpr}  double fmin(double x, double y);
 
-\highlight{constexpr}  long double fmin(long double x, long double y); // see [library.c]
+\highlight{constexpr}  long double fmin(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr}  float fminf(float x, float y);
 
@@ -855,11 +856,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-\highlight{constexpr}  float fma(float x, float y, float z); // see [library.c]
+\highlight{constexpr}  float fma(float x, float y, float z); \stdcomment{library.c}
 
 \highlight{constexpr}  double fma(double x, double y, double z);
 
-\highlight{constexpr}  long double fma(long double x, long double y, long double z); // see [library.c]
+\highlight{constexpr}  long double fma(long double x, long double y, long double z); \stdcomment{library.c}
 
 \highlight{constexpr}  float fmaf(float x, float y, float z);
 
@@ -867,7 +868,7 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [c.math.fpclass], classification / comparison functions:
+// [c.math.fpclass], {\em classification / comparison functions:}
 
 \highlight{constexpr} int fpclassify(float x);
 
