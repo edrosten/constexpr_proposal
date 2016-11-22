@@ -88,7 +88,7 @@ propose the following:
 	\begin{enumerate}
 		\item When taken to act on the set of extended rational numbers, the function is closed;
 		
-		\item The function does not modify any if its arguments which have external visibility.
+		\item The function does not modify any of its arguments which have external visibility.
 	\end{enumerate}
 \end{proposal*}
 
@@ -123,9 +123,9 @@ proposal is minimal.
 
 This proposal impacts the existing headers \cmath\ and \header{cstdlib} such
 that the changes do not break existing code and do not degrade performance.
-However, it is not a pure library extension. The subtlety arises because of the
-requirement that some of the functions affected must behave differently
-depending on whether or not they are used in a \constexpr context.
+However, it is not a pure library extension. The subtlety arises because affected
+functions must report errors by compilation failure in \constexpr\
+contexts instead of a writing an error code into a global variable.
 
 \section{Design Decisions}
 
@@ -164,7 +164,7 @@ criterion as well.
 To reduce space, the following convention is observed. The
 functions listed in [c.math] are divided into blocks of closely related
 functions such as those shown in table~\ref{tab:example}. 
-\begin{table}
+\begin{table}[h]
 	\begin{tabular}{l}
 		\code{int ilogb(float arg)}
 	\\
