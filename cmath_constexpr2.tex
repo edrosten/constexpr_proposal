@@ -83,7 +83,7 @@ thereby artificially restricting what can be done at compile-time within the sta
 Nevertheless, from casual inspection of \cmath, it may
 not be immediately obvious precisely which functions should be declared
 \constexpr. In this paper, we seek an organizing principle which selects functions
-which are in a sense no more complicated than the elementary arithmetic operations,
+which are in a sense no more complicated than the elementary arithmetic operations
 (\Operators). This is justified since the latter already support \constexpr.
 
 To put the application of \constexpr on a rigorous footing, we
@@ -157,7 +157,7 @@ possible to utilize a field which captures enough of the properties of numeric
 types in order to be useful in formulating criteria for the application of
 \constexpr. The set of rational numbers is the natural candidate since all valid
 values of numeric types are elements of this set and, moreover, the rationals close over
-$(+,-,\times,/)$ (with zero excluded for division)
+$(+,-,\times,/)$ (with zero excluded for division).
 
 The subtlety of global flags being set upon encountering floating-point
 exceptions presents a challenge. If all functions which can set such flags are
