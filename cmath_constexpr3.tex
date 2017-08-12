@@ -20,6 +20,8 @@
 \newcommand{\highlight}[1]{{\color{red} #1}}
 \newcommand{\stdcomment}[1]{{// {\em see} [#1]}}
 
+\newcommand{\eq}[1]{(\ref{eq:#1})}
+
 \newtheorem*{proposal*}{Proposal}
 
 \makeatletter
@@ -86,28 +88,18 @@ not be immediately obvious precisely which functions should be declared
 which are in a sense no more complicated than the elementary arithmetic operations
 (\Operators). This is justified since the latter already support \constexpr.
 
-To put the application of \constexpr on a rigorous footing, we
-propose the following:
-\begin{proposal*}
-	A function in \cmath\ shall be declared \constexpr if:
-	\begin{enumerate}
-		\item When taken to act on the set of extended rational numbers, the function is closed;
-		
-		\item The function does not modify any of its arguments which have external visibility.
-	\end{enumerate}
-\end{proposal*}
+Indeed, two subtleties can be resolved by appealing to the fact that they are already dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections, following which the concrete statement of the conditions under which a function should be declared \constexpr is given.
 
-By means of a brief illustration, $\code{abs}$ satisfies both criteria; however, functions such as 
-\code{exp}, \code{sqrt}, \code{cos}, \code{sin} fall foul of the first criterion and so are excluded as 
-\constexpr candidates.
+\subsection{Global Flags}
 
-It may seem that these criteria are insufficiently restrictive since various
-functions satisfying both may, under certain conditions, set global flags.
+Under certain conditions, various functions in \cmath\ may set global flags.
 Specifically, \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
-\FEINEXACT\ may be raised. The latter issue is 
-faced by the standard
-arithmetic operators but these are nevertheless available for use in constant
+\FEINEXACT\ may be raised. For example, \code{std::round(double x)}, which rounds its argument to the nearest integer value, raises \FEINVALID\ in the case that its argument is NaN or $\pm \infty$.
+
+This may seem problematic if one wishes to declare \code{std::round(double x)} to be \constexpr. 
+However, the issue of raising exception flags in a \constexpr context is nothing new: it is already faced by
+the standard arithmetic operators. Nevertheless, the latter are available for use in constant
 expressions. The proposed strategy is to mimic the behaviour of the arithmetic
 operators.
 
@@ -119,6 +111,43 @@ implies that any implementation cannot be done as a pure library extension.
 Consequently, there will be some burden on compiler vendors. However, the first
 criterion above ensures that the functions to be changed are in some sense
 simple.
+
+\subsection{Rounding Mode}
+
+Some of the functions in \cmath\ depend on the rounding mode, which is something which may be changed at runtime. Before addressing how to deal with this issue in \constexpr contexts, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
+
+Weak dependence is that already experienced by the arithmetic operators. For example, consider 10.0/3.0: the result depends on the rounding mode. We refer to this rounding mode dependence as weak since it is an artefact of the limited precision of floating-point numbers. However, that it is perfectly legitimate to declare
+\begin{equation}
+	\mbox{\code{constexpr double x\{10.0/3.0\}}}.
+\label{eq:10/3}
+\end{equation}
+Therefore, when deciding which functions in \cmath\ should be \constexpr, we will not rule out functions with weak rounding mode dependence.
+As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnote 1, the result is implementation defined. 
+
+Having dealt with weak rounding mode dependence, consider \code{float nearbyint(float x)}. This function rounds its argument to the nearest integer \emph{taking account of the current rounding mode}. Thus, a change to the rounding mode can change the answer by unity. This dependence on the rounding mode is not an artefact of limited precision and hence we call it strong.
+
+In this proposal, we chose to exclude functions with strong rounding mode dependence from being declared \constexpr. This respects the fact that these functions are designed to depend on the runtime environment.
+
+
+\subsection{Conditions for \constexpr}
+
+Taking into account the above consideration, we propose the following in order to put
+the application of \constexpr on a rigorous footing:
+\begin{proposal*}
+	A function in \cmath\ shall be declared \constexpr if:
+	\begin{enumerate}
+		\item When taken to act on the set of extended rational numbers, the function is closed;
+		
+		\item The function does not modify any of its arguments which have external visibility;
+		
+		\item The function is not strongly dependent on the rounding mode.
+	\end{enumerate}
+\end{proposal*}
+
+By means of a brief illustration, $\code{abs}$ satisfies both criteria; however, functions such as 
+\code{exp}, \code{sqrt}, \code{cos}, \code{sin} fall foul of the first criterion and so are excluded as 
+\constexpr candidates.
+
 
 \section{State of the Art}
 
@@ -198,8 +227,9 @@ third column of the tables, observing the following shorthands:
 	
 	\item V: Modifies argument with external visibility;
 	
-	\item R: Depends on rounding mode.
+	\item R: Depends strongly on rounding mode.
 \end{enumerate}
+If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends on the rounding mode, this would be indicated by G$\vert$R.
 
 \begin{table}[h]
 	\begin{tabular}{lcc}
@@ -256,16 +286,16 @@ third column of the tables, observing the following shorthands:
 		\code{float floor(float x)} & Yes & G$\star$
 	\\
 	\hline
-		\code{float nearbyint(float x)} & Yes &
+		\code{float nearbyint(float x)} & No & R
 	\\
 	\hline
-		\code{float rint(float x)} & Yes & G
+		\code{float rint(float x)} & No & G$\vert$R
 	\\
 	\hline
-		\code{long int lrint(float x)} &  Yes & G
+		\code{long int lrint(float x)} &  No & G$\vert$R
 	\\
 	\hline
-		\code{long long int llrint(float x)} & Yes & G
+		\code{long long int llrint(float x)} & No & G$\vert$R
 	\\
 	\hline
 		\code{float round(float x)} & Yes & G
@@ -286,7 +316,7 @@ third column of the tables, observing the following shorthands:
 		\code{float remainder(float x, float y} & Yes & G
 	\\
 	\hline
-		\code{float remquo(float x, float y, int* quo)} & No & V
+		\code{float remquo(float x, float y, int* quo)} & No & V$\vert$G
 	\\
 	\hline
 		\code{float copysign(float x, float y)} & Yes &
@@ -667,51 +697,51 @@ long double hypot(long double x, long double y, long double z);
 
 \vspace{2ex}
 
-\highlight{constexpr} float nearbyint(float x); \stdcomment{library.c}
+float nearbyint(float x); \stdcomment{library.c}
 
-\highlight{constexpr} double nearbyint(double x);
+double nearbyint(double x);
 
-\highlight{constexpr} long double nearbyint(long double x); \stdcomment{library.c}
+long double nearbyint(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} float nearbyintf(float x);
+ float nearbyintf(float x);
 
-\highlight{constexpr} long double nearbyintl(long double x);
-
-\vspace{2ex}
-
-\highlight{constexpr} float rint(float x); \stdcomment{library.c}
-
-\highlight{constexpr} double rint(double x);
-
-\highlight{constexpr} long double rint(long double x); \stdcomment{library.c}
-
-\highlight{constexpr} float rintf(float x);
-
-\highlight{constexpr} long double rintl(long double x);
+ long double nearbyintl(long double x);
 
 \vspace{2ex}
 
-\highlight{constexpr} long int lrint(float x); \stdcomment{library.c}
+ float rint(float x); \stdcomment{library.c}
 
-\highlight{constexpr} long int lrint(double x);
+ double rint(double x);
 
-\highlight{constexpr} long int lrint(long double x); \stdcomment{library.c}
+long double rint(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} long int lrintf(float x);
+ float rintf(float x);
 
-\highlight{constexpr} long int lrintl(long double x);
+ long double rintl(long double x);
 
 \vspace{2ex}
 
-\highlight{constexpr} long long int llrint(float x); \stdcomment{library.c}
+long int lrint(float x); \stdcomment{library.c}
 
-\highlight{constexpr} long long int llrint(double x);
+ long int lrint(double x);
 
-\highlight{constexpr} long long int llrint(long double x); \stdcomment{library.c}
+long int lrint(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} long long int llrintf(float x);
+ long int lrintf(float x);
 
-\highlight{constexpr} long long int llrintl(long double x);
+long int lrintl(long double x);
+
+\vspace{2ex}
+
+long long int llrint(float x); \stdcomment{library.c}
+
+long long int llrint(double x);
+
+long long int llrint(long double x); \stdcomment{library.c}
+
+long long int llrintf(float x);
+
+long long int llrintl(long double x);
 
 \vspace{2ex}
 
