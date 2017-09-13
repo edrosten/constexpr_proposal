@@ -15,6 +15,7 @@
 \newcommand{\FEINEXACT}{{\tt FE\_INEXACT}}
 \newcommand{\FEUNDERFLOW}{{\tt FE\_UNDERFLOW}}
 \newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
+\newcommand{\FLTRADIX}{{\tt FLT\_RADIX}}
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
 \newcommand{\highlight}[1]{{\color{red} #1}}
@@ -41,7 +42,7 @@
 \author{
 \hspace{11.5em}
 \begin{tabular}{ll}
-	Document: & P0533R0
+	Document: & P0533R1
 \\
 	Date: & \today
 \\
@@ -88,16 +89,16 @@ not be immediately obvious precisely which functions should be declared
 which are in a sense no more complicated than the elementary arithmetic operations
 (\Operators). This is justified since the latter already support \constexpr.
 
-Indeed, two subtleties can be resolved by appealing to the fact that they are already dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections, following which the concrete statement of the conditions under which a function should be declared \constexpr is given.
+Indeed, two subtleties can be resolved by appealing to the fact that they must be dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections, following which the concrete statement of the conditions under which a function should be declared \constexpr is given.
 
 \subsection{Global Flags}
 
 Under certain conditions, various functions in \cmath\ may set global flags.
 Specifically, \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
-\FEINEXACT\ may be raised. For example, \code{std::round(double x)}, which rounds its argument to the nearest integer value, raises \FEINVALID\ in the case that its argument is NaN or $\pm \infty$.
+\FEINEXACT\ may be raised. 
 
-This may seem problematic if one wishes to declare \code{std::round(double x)} to be \constexpr. 
+For example, \code{std::round(double x)}, which rounds its argument to the nearest integer value, raises \FEINVALID\ in the case that its argument is NaN or $\pm \infty$. This may seem problematic if one wishes to declare \code{std::round(double x)} to be \constexpr. 
 However, the issue of raising exception flags in a \constexpr context is nothing new: it is already faced by
 the standard arithmetic operators. Nevertheless, the latter are available for use in constant
 expressions. The proposed strategy is to mimic the behaviour of the arithmetic
@@ -108,25 +109,26 @@ context}, should give a compiler error if division by zero, domain errors or
 overflows occur. When not used in a \constexpr context, the various global
 flags should be set as normal. This distinction between these two contexts
 implies that any implementation cannot be done as a pure library extension.
-Consequently, there will be some burden on compiler vendors. However, the first
-criterion above ensures that the functions to be changed are in some sense
-simple.
+However, below
+we will introduce a criterion which restricts the proposed set of \constexpr\ functions 
+to those which are, in a sense, simple. Consequently, while there will be some burden 
+on compiler vendors it should be minimal. 
 
 \subsection{Rounding Mode}
 
-Some of the functions in \cmath\ depend on the rounding mode, which is something which may be changed at runtime. Before addressing how to deal with this issue in \constexpr contexts, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
+Some of the functions in \cmath\ depend on the rounding mode, which is something which may be changed at runtime. To facilitate the discussion, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
 
-Weak dependence is that already experienced by the arithmetic operators. For example, consider 10.0/3.0: the result depends on the rounding mode. We refer to this rounding mode dependence as weak since it is an artefact of the limited precision of floating-point numbers. However, that it is perfectly legitimate to declare
+Weak dependence is that already experienced by the arithmetic operators. For example, consider 10.0/3.0: the result depends on the rounding mode. We refer to this rounding mode dependence as weak since it is an artefact of the limited precision of floating-point numbers. However, it is perfectly legitimate to declare
 \begin{equation}
 	\mbox{\code{constexpr double x\{10.0/3.0\}}}.
 \label{eq:10/3}
 \end{equation}
 Therefore, when deciding which functions in \cmath\ should be \constexpr, we will not rule out functions with weak rounding mode dependence.
-As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnote 1, the result is implementation defined. 
+As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnote 1, the result is implementation defined. However, this issue is currently under active discussion. The key point for this paper is that, whatever decision is made, can be consistently applied to those functions in \cmath\ which we propose should be declared \constexpr.
 
 Having dealt with weak rounding mode dependence, consider \code{float nearbyint(float x)}. This function rounds its argument to the nearest integer \emph{taking account of the current rounding mode}. Thus, a change to the rounding mode can change the answer by unity. This dependence on the rounding mode is not an artefact of limited precision and hence we call it strong.
 
-In this proposal, we chose to exclude functions with strong rounding mode dependence from being declared \constexpr. This respects the fact that these functions are designed to depend on the runtime environment.
+In this proposal, we chose to exclude functions with strong rounding mode dependence from being declared \constexpr. This respects the fact that these functions are explicitly designed to depend on the runtime environment.
 
 
 \subsection{Conditions for \constexpr}
@@ -144,9 +146,9 @@ the application of \constexpr on a rigorous footing:
 	\end{enumerate}
 \end{proposal*}
 
-By means of a brief illustration, $\code{abs}$ satisfies both criteria; however, functions such as 
+By means of a brief illustration, $\code{abs}$ satisfies all three criteria; however, functions such as 
 \code{exp}, \code{sqrt}, \code{cos}, \code{sin} fall foul of the first criterion and so are excluded as 
-\constexpr candidates.
+\constexpr candidates. And, as discussed above, \code{nearbyint} fails the final criterion.
 
 
 \section{State of the Art}
@@ -161,11 +163,8 @@ proposal is minimal.
 
 \section{Impact On the Standard}
 
-This proposal impacts the existing headers \cmath\ and \header{cstdlib} such
-that the changes do not break existing code and do not degrade performance.
-However, it is not a pure library extension. The subtlety arises because affected
-functions must report errors by compilation failure in \constexpr\
-contexts instead of writing an error code into a global variable.
+This proposal impacts the existing headers \cmath\ and \header{cstdlib}. There may be an effect on existing code due to declaring certain functions with weak dependence on the rounding mode as \constexpr. The precise effect cannot be determined until the issue of how to treat the rounding mode of \constexpr\ arithmetic operations has been resolved. Independent of this, the proposal does not amount to 
+a pure library extension. The subtlety arises because affected functions must report errors by compilation failure in \constexpr\ contexts instead of writing an error code into a global variable.
 
 \section{Design Decisions}
 
@@ -196,7 +195,7 @@ those functions which are `simple enough'. These considerations lead to the
 first condition of the proposal.
 Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
 satisfying this criterion and indicate whether or not they pass the second
-criterion as well. 
+and third criteria as well. 
 
 To reduce space, the following convention is observed. The
 functions listed in [c.math] are divided into blocks of closely related
@@ -227,22 +226,27 @@ third column of the tables, observing the following shorthands:
 	
 	\item V: Modifies argument with external visibility;
 	
-	\item R: Depends strongly on rounding mode.
+	\item S: Depends strongly on rounding mode;
+	
+	\item W: Depends weakly on the rounding mode;
+	
+	\item w: Depends weakly on the rounding mode only if \FLTRADIX\ is not 2;
+	
+	\item u: Depends weakly on the rounding mode only in the case of underflow.
 \end{enumerate}
-If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends on the rounding mode, this would be indicated by G$\vert$R.
-
+If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends on the rounding mode, this would be indicated by G$\vert$S. Finally, implementation dependence is denoted by a $\star$ so that, for example, G$\star$ means that whether or not a global variable may be set depends on the implementation.
 \begin{table}[h]
 	\begin{tabular}{lcc}
 		Function & Pass & Comment
 	\\
 	\hline \hline
-		\code{float frexp(float value, int* exp)} & No & V
+		\code{float frexp(float value, int* exp)} & No & V$\vert$w
 	\\
 	\hline
 		\code{int ilogb(float arg)} & Yes & G
 	\\
 	\hline
-		\code{float ldexp(float x, int exp)} & Yes & G		
+		\code{float ldexp(float x, int exp)} & Yes & G$\vert$w		
 	\\
 	\hline
 		\code{float logb(float arg)} & Yes & G
@@ -251,10 +255,10 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float modf(float value, float* iptr)} & No & V
 	\\
 	\hline
-		\code {float scalbn(float x, int n)} & Yes & G
+		\code {float scalbn(float x, int n)} & Yes & G$\vert$u
 	\\
 	\hline
-		\code {float scalbln(float x, long int n)} & Yes & G
+		\code {float scalbln(float x, long int n)} & Yes & G$\vert$u
 	\end{tabular}
 \caption{Various functions declared in [cmath.syn] which close on the rationals.}
 \label{tab:26.9.1}
@@ -286,16 +290,16 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float floor(float x)} & Yes & G$\star$
 	\\
 	\hline
-		\code{float nearbyint(float x)} & No & R
+		\code{float nearbyint(float x)} & No & S
 	\\
 	\hline
-		\code{float rint(float x)} & No & G$\vert$R
+		\code{float rint(float x)} & No & G$\vert$S
 	\\
 	\hline
-		\code{long int lrint(float x)} &  No & G$\vert$R
+		\code{long int lrint(float x)} &  No & G$\vert$S
 	\\
 	\hline
-		\code{long long int llrint(float x)} & No & G$\vert$R
+		\code{long long int llrint(float x)} & No & G$\vert$S
 	\\
 	\hline
 		\code{float round(float x)} & Yes & G
@@ -310,13 +314,13 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float trunc(float x)} &  Yes & G
 	\\
 	\hline
-		\code{float fmod(float x, float y)} & Yes & G
+		\code{float fmod(float x, float y)} & Yes & G$\vert$W
 	\\
 	\hline
-		\code{float remainder(float x, float y} & Yes & G
+		\code{float remainder(float x, float y)} & Yes & G$\vert$W$\star$
 	\\
 	\hline
-		\code{float remquo(float x, float y, int* quo)} & No & V$\vert$G
+		\code{float remquo(float x, float y, int* quo)} & No & V$\vert$G$\vert$W$\star$
 	\\
 	\hline
 		\code{float copysign(float x, float y)} & Yes &
@@ -328,7 +332,7 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float nexttoward(float x, long double y)} & Yes & G
 	\\
 	\hline
-		\code{float fdim(float x, float y)} & Yes & G
+		\code{float fdim(float x, float y)} & Yes & G$\vert$u
 	\\
 	\hline
 		\code{float fmax(float x, float y)} & Yes &
@@ -337,9 +341,9 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float fmin(float x, float y)} & Yes &
 	\\
 	\hline
-		\code{float fma(float x, float y, float z)} & Yes & G
+		\code{float fma(float x, float y, float z)} & Yes & G$\vert$W
 	\end{tabular}
-\caption{Additional functions declared in [cmath.syn]  which close on the rationals. $\star$ --- implementation dependent.}
+\caption{Additional functions declared in [cmath.syn]  which close on the rationals.}
 \label{tab:26.9.3}
 \end{table}
 
@@ -387,6 +391,14 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 \label{tab:26.9.4}
 \end{table}
 
+\section{Future Directions}
+
+Ultimately, it is desirable to follows gcc's lead and to declare almost all functions in \cmath\ as \constexpr. This will amount to removing the first criterion of our proposal which, particularly once the issue of weak rounding mode dependence has been resolved, should hopefully be relatively uncontroversial.
+
+\section{Revision History}
+
+Revision 1: Includes discussion of rounding mode and future directions.
+
 \begin{acknowledgments}
 	We would like to thank Walter E.~Brown, Daniel Kr\"ugler and Antony Polukhin for 
 	encouragement and advice.
@@ -396,7 +408,7 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 \begin{thebibliography}{1}
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
 	
-	\bibitem[N4618]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.
+	\bibitem[N4687]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.
 \end{thebibliography}
 
 \newpage
