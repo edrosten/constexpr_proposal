@@ -42,7 +42,7 @@
 \author{
 \hspace{11.5em}
 \begin{tabular}{ll}
-	Document: & P0533R1
+	Document: & D0533R1
 \\
 	Date: & \today
 \\
@@ -124,7 +124,9 @@ Weak dependence is that already experienced by the arithmetic operators. For exa
 \label{eq:10/3}
 \end{equation}
 Therefore, when deciding which functions in \cmath\ should be \constexpr, we will not rule out functions with weak rounding mode dependence.
-As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnote 1, the result is implementation defined. However, this issue is currently under active discussion. The key point for this paper is that, whatever decision is made, can be consistently applied to those functions in \cmath\ which we propose should be declared \constexpr.
+As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnote 1, the result is implementation defined. However, this issue is currently under active discussion. 
+
+The key point for this paper is that, whatever decision is made, the approach can be consistently applied to those functions in \cmath\ which we propose should be declared \constexpr. It is worth noting that the number of functions in this proposal which are dependent on the rounding mode is rather small (see \ref{sec:dd}).
 
 Having dealt with weak rounding mode dependence, consider \code{float nearbyint(float x)}. This function rounds its argument to the nearest integer \emph{taking account of the current rounding mode}. Thus, a change to the rounding mode can change the answer by unity. This dependence on the rounding mode is not an artefact of limited precision and hence we call it strong.
 
@@ -167,6 +169,7 @@ This proposal impacts the existing headers \cmath\ and \header{cstdlib}. There m
 a pure library extension. The subtlety arises because affected functions must report errors by compilation failure in \constexpr\ contexts instead of writing an error code into a global variable.
 
 \section{Design Decisions}
+\label{sec:dd}
 
 There is at least one natural candidate in \header{cmath}, namely $\code{abs}$,
 to which \constexpr should be applied, not least because this has already been proposed
@@ -232,7 +235,7 @@ third column of the tables, observing the following shorthands:
 	
 	\item w: Depends weakly on the rounding mode only if \FLTRADIX\ is not 2;
 	
-	\item u: Depends weakly on the rounding mode only in the case of underflow.
+	\item U: Depends weakly on the rounding mode only in the case of underflow.
 \end{enumerate}
 If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends on the rounding mode, this would be indicated by G$\vert$S. Finally, implementation dependence is denoted by a $\star$ so that, for example, G$\star$ means that whether or not a global variable may be set depends on the implementation.
 \begin{table}[h]
@@ -255,10 +258,10 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float modf(float value, float* iptr)} & No & V
 	\\
 	\hline
-		\code {float scalbn(float x, int n)} & Yes & G$\vert$u
+		\code {float scalbn(float x, int n)} & Yes & G$\vert$U
 	\\
 	\hline
-		\code {float scalbln(float x, long int n)} & Yes & G$\vert$u
+		\code {float scalbln(float x, long int n)} & Yes & G$\vert$U
 	\end{tabular}
 \caption{Various functions declared in [cmath.syn] which close on the rationals.}
 \label{tab:26.9.1}
@@ -332,7 +335,7 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float nexttoward(float x, long double y)} & Yes & G
 	\\
 	\hline
-		\code{float fdim(float x, float y)} & Yes & G$\vert$u
+		\code{float fdim(float x, float y)} & Yes & G$\vert$U
 	\\
 	\hline
 		\code{float fmax(float x, float y)} & Yes &
