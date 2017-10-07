@@ -138,7 +138,7 @@ In this proposal, we chose to exclude functions with strong rounding mode depend
 Taking into account the above consideration, we propose the following in order to put
 the application of \constexpr on a rigorous footing:
 \begin{proposal*}
-	A function in \cmath\ shall be declared \constexpr if:
+	A function in \cmath\ shall be declared \constexpr if and only if:
 	\begin{enumerate}
 		\item When taken to act on the set of extended rational numbers, the function is closed;
 		
@@ -150,7 +150,7 @@ the application of \constexpr on a rigorous footing:
 
 By means of a brief illustration, $\code{abs}$ satisfies all three criteria; however, functions such as 
 \code{exp}, \code{sqrt}, \code{cos}, \code{sin} fall foul of the first criterion and so are excluded as 
-\constexpr candidates. And, as discussed above, \code{nearbyint} fails the final criterion.
+\constexpr candidates. Finally, as discussed above, \code{nearbyint} fails the final criterion.
 
 
 \section{State of the Art}
@@ -172,11 +172,12 @@ a pure library extension. The subtlety arises because affected functions must re
 \label{sec:dd}
 
 There are several obvious candidates in \header{cmath} to which \constexpr should be applied, such as \code{abs}, \code{floor}, \code{ceil}.  But beyond this, it is desirable to
-apply \constexpr throughout \cmath\ in a consistent manner. Ideally, this consistency of approach should encompass prior work on \code{complex}, since it has already been proposed that \code{complex::norm} be declared \constexpr~\cite{AP-complex}. For this purpose, ideally one would
+apply \constexpr throughout \cmath\ in a consistent manner. Ideally, this consistency of approach should encompass prior work on \code{complex}, since it has already been proposed that, in addition to the arithmetic operations, \code{complex::norm} and a few other functions be declared \constexpr~\cite{AP-complex}. For this purpose, ideally one would
 like one or more criteria rooted in mathematics. However, the reality is that
 this is insufficiently restrictive. Nevertheless, mathematics was our starting
 point; as such, any condition on functions to be \constexpr must select the
-basic arithmetic operations, $(+,-,\times,/)$, since these are already \constexpr.
+basic arithmetic operations, $(+,-,\times,/)$, since these may already be used in a 
+\constexpr\ context.
 
 Mathematically, a field is closed under the elementary operations of addition
 and multiplication.
