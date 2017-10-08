@@ -3,6 +3,7 @@
 \usepackage{xspace} %Dude this will blow your mind!
 \usepackage{amsthm}
 \usepackage{color}
+\usepackage{soul}
 
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
@@ -422,8 +423,18 @@ Revision 1: Includes discussion of rounding mode and future directions.
 
 The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 
-\subsection{Modifications to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
+\subsection{Modifiction to ``Constant expressions'' [expr.const]}
 
+\setlength{\parindent}{0pt}
+
+(2.19) --- a relational (5.9) or equality (5.10) operator where the result is unspecified; \highlight{\st{or}}
+
+{\small (2.20)} --- a \emph{throw-expression} (5.17)\highlight{\st{.};or}
+
+\highlight{{\small (2.21)} --- an invocation of a mathematical function in the standard library that encounters a domain error or overflow.}
+
+
+\subsection{Modifications to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
 
 \code{namespace std\{
 
