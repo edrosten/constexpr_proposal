@@ -141,7 +141,8 @@ the application of \constexpr on a rigorous footing:
 \begin{proposal*}
 	A function in \cmath\ shall be declared \constexpr if and only if:
 	\begin{enumerate}
-		\item When taken to act on the set of extended rational numbers, the function is closed;
+		\item When taken to act on the set of rational numbers, the function is closed (excluding division 
+		by zero);
 		
 		\item The function does not modify any of its arguments which have external visibility;
 		
@@ -166,8 +167,9 @@ proposal is minimal.
 
 \section{Impact On the Standard}
 
-This proposal impacts the existing headers \cmath\ and \header{cstdlib}. There may be an effect on existing code due to declaring certain functions with weak dependence on the rounding mode as \constexpr. The precise effect cannot be determined until the issue of how to treat the rounding mode of \constexpr\ arithmetic operations has been resolved. Independent of this, the proposal does not amount to 
-a pure library extension. The subtlety arises because affected functions must report errors by compilation failure in \constexpr\ contexts instead of writing an error code into a global variable.
+This proposal adds an extra requirement to [expr.const] pertaining to the definition of what constitutes a constant expression. In particular, if a mathematical function encounters a domain error or overflow, then it may not form part of a constant expression. As such, this proposal does not amount to a pure library extension. Beyond this addition, the proposed changes amount to scattering \constexpr\ throughout the existing headers \cmath\ and \header{cstdlib}, according to the rules specified earlier. 
+
+In this proposal, we have chosen for the standard to remain silent on the issue of the interaction of rounding mode dependence with constant expressions. On the one hand, this is no worse than the current situation regarding the arithmetic operators. On the other, the active discussion about how to optimally resolve this matter suggests to us that the issue is better served by a separate proposal.
 
 \section{Design Decisions}
 \label{sec:dd}
@@ -423,7 +425,7 @@ Revision 1: Includes discussion of rounding mode and future directions.
 
 The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 
-\subsection{Modifiction to ``Constant expressions'' [expr.const]}
+\subsection{Modification to ``Constant expressions'' [expr.const]}
 
 \setlength{\parindent}{0pt}
 
