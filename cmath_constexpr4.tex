@@ -4,6 +4,7 @@
 \usepackage{amsthm}
 \usepackage{color}
 \usepackage{soul}
+\usepackage{fancyvrb}
 
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
@@ -43,7 +44,7 @@
 \author{
 \hspace{11.5em}
 \begin{tabular}{ll}
-	Document: & P0533R2
+	Document: & P0533R3
 \\
 	Date: & \today
 \\
@@ -133,6 +134,27 @@ Having dealt with weak rounding mode dependence, consider \code{float nearbyint(
 
 In this proposal, we chose to exclude functions with strong rounding mode dependence from being declared \constexpr. This respects the fact that these functions are explicitly designed to depend on the runtime environment.
 
+\subsection{Arguments with External Visibility}
+
+At first sight, it may appear pointless to declare functions like
+\[
+	\code{float \ frexp(float \ value, int* \ exp)} 
+\]
+to be \constexpr since such functions modify arguments with external visibility.
+However, declaring functions of this type \constexpr means that they can be used
+in \constexpr contexts. In other words this would allow functions such as
+\begin{Verbatim}
+constexpr int foo(float x) {
+  int a{}; int* pa = &a;
+  std::frexpr(x, pa);
+  return a;
+}
+\end{Verbatim}	
+to be used to things like
+\[
+	\mbox{\code{constexpr int i\{foo(0.5f)\}}}.
+\]
+
 
 \subsection{Conditions for \constexpr}
 
@@ -143,8 +165,6 @@ the application of \constexpr on a rigorous footing:
 	\begin{enumerate}
 		\item When taken to act on the set of rational numbers, the function is closed (excluding division 
 		by zero);
-		
-		\item The function does not modify any of its arguments which have external visibility;
 		
 		\item The function is not strongly dependent on the rounding mode.
 	\end{enumerate}
@@ -229,8 +249,6 @@ third column of the tables, observing the following shorthands:
 \begin{enumerate}
 	\item G: May set global variable;
 	
-	\item V: Modifies argument with external visibility;
-	
 	\item S: Depends strongly on rounding mode;
 	
 	\item W: Depends weakly on the rounding mode;
@@ -245,7 +263,7 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		Function & Pass & Comment
 	\\
 	\hline \hline
-		\code{float frexp(float value, int* exp)} & No & V$\vert$w
+		\code{float frexp(float value, int* exp)} & Yes & w
 	\\
 	\hline
 		\code{int ilogb(float arg)} & Yes & G
@@ -257,7 +275,7 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float logb(float arg)} & Yes & G
 	\\
 	\hline
-		\code{float modf(float value, float* iptr)} & No & V
+		\code{float modf(float value, float* iptr)} & Yes &
 	\\
 	\hline
 		\code {float scalbn(float x, int n)} & Yes & G$\vert$U
@@ -325,7 +343,7 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 		\code{float remainder(float x, float y)} & Yes & G$\vert$W$\star$
 	\\
 	\hline
-		\code{float remquo(float x, float y, int* quo)} & No & V$\vert$G$\vert$W$\star$
+		\code{float remquo(float x, float y, int* quo)} & Yes & G$\vert$W$\star$
 	\\
 	\hline
 		\code{float copysign(float x, float y)} & Yes &
@@ -405,6 +423,8 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 Revision 1: Includes discussion of rounding mode and future directions. 
 
 Revision 2: More stable tags utiliized.
+
+Revision 3: Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. 
 
 \begin{acknowledgments}
 	We would like to thank Walter E.~Brown, Daniel Kr\"ugler, Antony Polukhin and Richard Smith for 
@@ -507,15 +527,15 @@ long double acosl(long double x);
 \ldots
 \vspace{2ex}
 
-float frexp(float value, int* exp); \stdcomment{library.c}
+\highlight{constexpr}  float frexp(float value, int* exp); \stdcomment{library.c}
 
-double frexp(double value, int* exp);
+\highlight{constexpr}  double frexp(double value, int* exp);
 
-long double frexp(long double value, int* exp); \stdcomment{library.c}
+\highlight{constexpr}  long double frexp(long double value, int* exp); \stdcomment{library.c}
 
-float frexpf(float value, int* exp);
+\highlight{constexpr}  float frexpf(float value, int* exp);
 
-long double frexpl(long double value, int* exp);
+\highlight{constexpr}  long double frexpl(long double value, int* exp);
 
 \vspace{2ex}
 
@@ -603,15 +623,15 @@ long double log2l(long double x);
 
 \vspace{2ex}
 
-float modf(float value, float* iptr); \stdcomment{library.c}
+\highlight{constexpr}  float modf(float value, float* iptr); \stdcomment{library.c}
 
-double modf(double value, double* iptr);
+\highlight{constexpr}  double modf(double value, double* iptr);
 
-long double modf(long double value, long double* iptr); \stdcomment{library.c}
+\highlight{constexpr}  long double modf(long double value, long double* iptr); \stdcomment{library.c}
 
-float modff(float value, float* iptr);
+\highlight{constexpr}  float modff(float value, float* iptr);
 
-long double modfl(long double value, long double* iptr);
+\highlight{constexpr}  long double modfl(long double value, long double* iptr);
 
 \vspace{2ex}
 
@@ -847,15 +867,15 @@ long long int llrintl(long double x);
 
 \vspace{2ex}
 
-float remquo(float x, float y, int* quo); \stdcomment{library.c}
+\highlight{constexpr}  float remquo(float x, float y, int* quo); \stdcomment{library.c}
 
-double remquo(double x, double y, int* quo);
+\highlight{constexpr}  double remquo(double x, double y, int* quo);
 
-long double remquo(long double x, long double y, int* quo); \stdcomment{library.c}
+\highlight{constexpr}  long double remquo(long double x, long double y, int* quo); \stdcomment{library.c}
 
-float remquof(float x, float y, int* quo);
+\highlight{constexpr}  float remquof(float x, float y, int* quo);
 
-long double remquol(long double x, long double y, int* quo);
+\highlight{constexpr}  long double remquol(long double x, long double y, int* quo);
 
 \vspace{2ex}
 
