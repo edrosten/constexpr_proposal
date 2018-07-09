@@ -91,7 +91,7 @@ not be immediately obvious precisely which functions should be declared
 which are in a sense no more complicated than the elementary arithmetic operations
 (\Operators). This is justified since the latter already support \constexpr.
 
-Indeed, two subtleties can be resolved by appealing to the fact that they must be dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections, following which the concrete statement of the conditions under which a function should be declared \constexpr is given.
+Indeed, two subtleties can be resolved by appealing to the fact that they must be dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections. Following this, a justification is given for declaring functions in \cmath\ which modify an argument with external visibility to be \constexpr. These considerations lead to a concrete statement of the conditions under which a function should be declared \constexpr.
 
 \subsection{Global Flags}
 
@@ -130,15 +130,16 @@ As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnot
 
 The key point for this paper is that, whatever decision is made, the approach can be consistently applied to those functions in \cmath\ which we propose should be declared \constexpr. It is worth noting that the number of functions in this proposal which are dependent on the rounding mode is rather small (see \ref{sec:dd}).
 
-Having dealt with weak rounding mode dependence, consider \code{float nearbyint(float x)}. This function rounds its argument to the nearest integer \emph{taking account of the current rounding mode}. Thus, a change to the rounding mode can change the answer by unity. This dependence on the rounding mode is not an artefact of limited precision and hence we call it strong.
+Having dealt with weak rounding mode dependence, now consider \code{float nearbyint(float x)}. This function rounds its argument to the nearest integer \emph{taking account of the current rounding mode}. Thus, a change to the rounding mode can change the answer by unity. This dependence on the rounding mode is not an artefact of limited precision and hence we call it strong.
 
 In this proposal, we chose to exclude functions with strong rounding mode dependence from being declared \constexpr. This respects the fact that these functions are explicitly designed to depend on the runtime environment.
 
 \subsection{Arguments with External Visibility}
+\label{sec:external}
 
 At first sight, it may appear pointless to declare functions like
 \[
-	\code{float \ frexp(float \ value, int* \ exp)} 
+	\mbox{\code{float frexp(float value, int* exp)}}
 \]
 to be \constexpr since such functions modify arguments with external visibility.
 However, declaring functions of this type \constexpr means that they can be used
@@ -150,7 +151,7 @@ constexpr int foo(float x) {
   return a;
 }
 \end{Verbatim}	
-to be used to things like
+to be used to do things like
 \[
 	\mbox{\code{constexpr int i\{foo(0.5f)\}}}.
 \]
@@ -172,14 +173,14 @@ the application of \constexpr on a rigorous footing:
 
 By means of a brief illustration, $\code{abs}$ satisfies all three criteria; however, functions such as 
 \code{exp}, \code{sqrt}, \code{cos}, \code{sin} fall foul of the first criterion and so are excluded as 
-\constexpr candidates. Finally, as discussed above, \code{nearbyint} fails the final criterion.
+\constexpr candidates. Finally, as discussed above, \code{nearbyint} fails the second criterion.
 
 
 \section{State of the Art}
 
 Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
 Indeed, GCC 5.3.0 declares all functions, with the exception of those taking a pointer argument
-(cf.\ the second criterion), as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is available (indeed, this implementation goes beyond what we propose).
+(cf.~\ref{sec:external}), as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards this implementation goes beyond what we propose).
 While clang does not go nearly as far as GCC, it does offer some functions as 
 builtins and is able to use them to perform compile time computations, constant
 propagation and so on. It is therefore hoped that any burden on compiler vendors implicit in this
@@ -219,8 +220,7 @@ sparse. To achieve something more useful suggests expanding the set to include
 those functions which are `simple enough'. These considerations lead to the
 first condition of the proposal.
 Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
-satisfying this criterion and indicate whether or not they pass the second
-and third criteria as well. 
+satisfying this criterion and indicate whether or not they pass the second criterion as well. 
 
 To reduce space, the following convention is observed. The
 functions listed in [c.math] are divided into blocks of closely related
@@ -257,7 +257,7 @@ third column of the tables, observing the following shorthands:
 	
 	\item U: Depends weakly on the rounding mode only in the case of underflow.
 \end{enumerate}
-If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends on the rounding mode, this would be indicated by G$\vert$S. Finally, implementation dependence is denoted by a $\star$ so that, for example, G$\star$ means that whether or not a global variable may be set depends on the implementation.
+If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends strongly on the rounding mode, this would be indicated by G$\vert$S. Finally, implementation dependence is denoted by a $\star$ so that, for example, G$\star$ means that whether or not a global variable may be set depends on the implementation.
 \begin{table}[h]
 	\begin{tabular}{lcc}
 		Function & Pass & Comment
