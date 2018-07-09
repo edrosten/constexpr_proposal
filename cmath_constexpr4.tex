@@ -435,7 +435,7 @@ Revision 3: Lifted the unnecessary restriction not to include functions which mo
 \begin{thebibliography}{1}
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
 	
-	\bibitem[N4713]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.
+	\bibitem[N4762]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.
 \end{thebibliography}
 
 \newpage
@@ -452,11 +452,11 @@ The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 
 \setlength{\parindent}{0pt}
 
-(2.22) --- a relational [expr.rel] or equality [expr.eq] operator where the result is unspecified; \highlight{\st{or}}
+{\small (2.23)} --- a \emph{throw-expression} [expr.throw]; \highlight{\st{or}}
 
-{\small (2.23)} --- a \emph{throw-expression} [expr.throw]\highlight{\st{.};or}
+{{\small (2.24)} --- an invocation of the \code{va\_arg} macro [cstdarg.syn]\highlight{\st{.};or}
 
-\highlight{{\small (2.24)} --- an invocation of a mathematical function in the standard library that encounters a domain error or overflow.}
+\highlight{{\small (2.25)}} --- an invocation of a mathematical function in the standard library that encounters a domain error or overflow.}
 
 \vspace{-1.5ex}
 \subsection{Modifications to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
