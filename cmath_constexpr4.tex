@@ -190,7 +190,9 @@ proposal is minimal.
 
 This proposal adds an extra requirement to [expr.const] pertaining to the definition of what constitutes a constant expression. In particular, if a mathematical function encounters a domain error or overflow, then it may not form part of a constant expression. As such, this proposal does not amount to a pure library extension. 
 
-[library.c] is amended to explicitly indicate that, compared to the underlying C signatures, the C++ counterparts may be declared \constexpr. The remaining changes amount to scattering \constexpr\ throughout the existing headers \cmath\ and \header{cstdlib}, according to the rules specified earlier. 
+[library.c] is amended to explicitly indicate that, compared to the underlying C signatures, the C++ counterparts may be declared \constexpr. 
+
+The remaining changes amount to scattering \constexpr\ throughout the existing headers \cmath\ and \header{cstdlib}, according to the rules specified earlier. 
 
 In this proposal, we have chosen for the standard to remain silent on the issue of the interaction of rounding mode dependence with constant expressions. On the one hand, this is no worse than the current situation regarding the arithmetic operators. On the other, the active discussion about how to optimally resolve this matter suggests to us that the issue is better served by a separate proposal.
 
