@@ -50,7 +50,7 @@
 \\
 	Project: & Programming Language C++, Library Working Group
 \\
-	Audience: & LEWG
+	Audience: & LEWG $\rightarrow$ LWG
 \\
 	Reply to: & Edward J.\ Rosten / Oliver J.\ Rosten 
 	{\tt $<$forename.rosten@gmail.com$>$}
@@ -422,15 +422,17 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 
 \section{Revision History}
 
-Revision 1: Includes discussion of rounding mode and future directions. 
-
-Revision 2: More stable tags utiliized.
-
-Revision 3: Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. 
+\begin{enumerate}
+	\item[R1] Includes discussion of rounding mode and future directions. 
+	
+	\item[R2] More stable tags utilized.
+	
+	\item[R3] Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. Proposed a modification to [library.c].
+\end{enumerate}
 
 \begin{acknowledgments}
-	We would like to thank Walter E.~Brown, Daniel Kr\"ugler, Antony Polukhin and Richard Smith for 
-	encouragement and advice.
+	We would like to thank Daniel Kr\"ugler, Antony Polukhin and especially Walter E.~Brown 
+	for encouragement and advice. Sincere thanks also to Richard Smith for help with standardese.
 \end{acknowledgments}
 
 
@@ -452,6 +454,14 @@ Revision 3: Lifted the unnecessary restriction not to include functions which mo
 
 The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 
+\subsection{Modification to ``Constant expressions'' [expr.const]}
+
+
+{\small (2.23)} --- a \emph{throw-expression} [expr.throw]; \highlight{\st{or}}
+
+{{\small (2.24)} --- an invocation of the \code{va\_arg} macro [cstdarg.syn]\highlight{\st{.};or}
+
+\highlight{{\small (2.25)}} --- an invocation of a mathematical function in the standard library that encounters a domain error or overflow.}
 
 \subsection{Modification to ``The C standard library'' [library.c]}
 
@@ -463,14 +473,6 @@ and additional overloads may be declared in this document, but the behavior and 
 preconditions (including any preconditions implied by the use of an ISO C restrict qualifier) are the same
 unless otherwise stated.
 
-\subsection{Modification to ``Constant expressions'' [expr.const]}
-
-
-{\small (2.23)} --- a \emph{throw-expression} [expr.throw]; \highlight{\st{or}}
-
-{{\small (2.24)} --- an invocation of the \code{va\_arg} macro [cstdarg.syn]\highlight{\st{.};or}
-
-\highlight{{\small (2.25)}} --- an invocation of a mathematical function in the standard library that encounters a domain error or overflow.}
 
 \subsection{Modifications to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
 
