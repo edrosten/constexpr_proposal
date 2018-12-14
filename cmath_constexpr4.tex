@@ -109,9 +109,9 @@ operators.
 To be precise, functions declared \constexpr, \emph{when used in a \constexpr
 context}, should give a compiler error if division by zero, domain errors or
 overflows occur. When not used in a \constexpr context, the various global
-flags should be set as normal. This distinction between these two contexts
-implies that any implementation cannot be done as a pure library extension.
-However, below
+flags should be set as normal. This distinction between these two contexts previously 
+implied that any implementation cannot be done as a pure library extension. However, the emergence of \code{std::is\_constant\_evaluated()} may allow for this be circumvented.
+Either way, below
 we will introduce a criterion which restricts the proposed set of \constexpr\ functions 
 to those which are, in a sense, simple. Consequently, while there will be some burden 
 on compiler vendors it should be minimal. 
@@ -179,7 +179,7 @@ By means of a brief illustration, $\code{abs}$ satisfies all three criteria; how
 \section{State of the Art}
 
 Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
-Indeed, GCC 5.3.0 declares all functions, with the exception of those taking a pointer argument
+Indeed, GCC 5.3.0 declares all functions, besides the special functions and those taking a pointer argument
 (cf.~\ref{sec:external}), as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose).
 While clang does not go nearly as far as GCC, it does offer some functions as 
 builtins and is able to use them to perform compile time computations, constant
@@ -188,7 +188,7 @@ proposal is minimal.
 
 \section{Impact On the Standard}
 
-This proposal adds an extra requirement to [expr.const] pertaining to the definition of what constitutes a constant expression. In particular, if a mathematical function encounters a domain error or overflow, then it may not form part of a constant expression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$, \cite{ConstEval} it may be possible to implement the desired behaviour as a pure library extentsion; previously, this was not the case.
+This proposal adds an extra requirement to [expr.const] pertaining to the definition of what constitutes a constant expression. In particular, if a mathematical function encounters a domain error or overflow, then it may not form part of a constant expression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$, \cite{ConstEval} it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case.
 
 [library.c] is amended to explicitly indicate that, compared to the underlying C signatures, the C++ counterparts may be declared \constexpr. 
 
@@ -443,7 +443,7 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 	
 	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
 	
-	\bibitem[N4788]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.	
+	\bibitem[N4791]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.	
 \end{thebibliography}
 
 \newpage
