@@ -1,0 +1,1673 @@
+\documentclass[prd,twocolumn,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
+
+\usepackage{xspace} %Dude this will blow your mind!
+\usepackage{amsthm}
+\usepackage{color}
+\usepackage{soul}
+\usepackage{fancyvrb}
+
+\newcommand{\constexpr}{\code{constexpr}\xspace}
+\newcommand{\code}[1]{{\tt #1}}
+\newcommand{\header}[1]{{\tt <#1>}}
+\newcommand{\cmath}{\header{cmath}}
+\newcommand{\complex}{\header{complex}}
+\newcommand{\cstdlib}{\header{cstdlib}}
+
+\newcommand{\FEINVALID}{{\tt FE\_INVALID}}
+\newcommand{\FEDIVBYZERO}{{\tt FE\_DIVBYZERO}}
+\newcommand{\FEINEXACT}{{\tt FE\_INEXACT}}
+\newcommand{\FEUNDERFLOW}{{\tt FE\_UNDERFLOW}}
+\newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
+\newcommand{\FLTRADIX}{{\tt FLT\_RADIX}}
+\newcommand{\Operators}{\ensuremath{+,-,\times,/}}
+
+\newcommand{\highlight}[1]{{\color{red} #1}}
+\newcommand{\oldhighlight}[1]{{\color{green} #1}}
+\newcommand{\stdcomment}[1]{{// {\em see} [#1]}}
+
+\newcommand{\eq}[1]{(\ref{eq:#1})}
+
+\newtheorem*{proposal*}{Proposal}
+
+\makeatletter
+\def\l@subsection#1#2{}
+\def\l@subsubsection#1#2{}
+\makeatother
+
+\def\bibsection{\section*{\refname}} 
+
+\begin{document}
+
+
+\title{More \constexpr for \cmath\ and \complex}
+%\author{Edward J.~Rosten \& Oliver J.~Rosten}
+%\date{\today}
+
+\author{
+\hspace{11.5em}
+\begin{tabular}{ll}
+	Document: & P0533R4
+\\
+	Date: & \today
+\\
+	Project: & Programming Language C++, Library Working Group
+\\
+	Audience: & SG6 $\rightarrow$ LEWG $\rightarrow$ LWG
+\\
+	Reply to: & Edward J.\ Rosten {(\tt erosten@snap.com)}
+ / Oliver J.\ Rosten {(\tt oliver.rosten@gmail.com)}
+\end{tabular}
+}
+
+\begin{abstract}
+
+\begin{center} {\bf Abstract} \end{center}
+
+In~\cite{Rosten-constexpr}, a scattering of $\constexpr$, principally throughout \cmath, has been proposed. This was subject to a constraint that the affected functions are limited to those which are, in a sense, no more complicated than the arithmetic operators \Operators. It is now time to lift this restriction thereby allowing a richer spectrum of mathematical functions to be used in a \constexpr\ context.
+	
+\end{abstract}
+
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+Since its inception, \constexpr\ has become an invaluable ingredient in compile-time programming. Indeed, part of its appeal is that the sharp distinction between meta-programming and runtime programming has in many instances become blurred. The interest in \constexpr\ is reflected by the numerous papers proposing to increase the range of keywords and library functions that may be used in a \constexpr\ context. As such, it is essential for the long-term uniformity of C++ that parts of the standard library are not left behind in this process.
+
+This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to significantly expand the number of functions in \cmath\ (and also \complex) which may be used in a \constexpr context. 
+
+
+\section{Motivation \& Scope}
+
+Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which it is arguably perverse to still be unavailable for compile-time computation. Indeed, subsequent to~\cite{AP-complex}, the situation hass actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify this, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
+
+The broad strategy of~\cite{Rosten-constexpr} is to focus on those functions which are, in a sense, no more complicated than the arithmetic operators \Operators; the rationale for this being that the latter are already available in a \constexpr\ context.
+As~\cite{Rosten-constexpr} has proceeded through the standardisation process, a collective desire has arisen to extend the scope to include much of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}.
+
+
+\section{State of the Art}
+
+{\bf TODO}
+
+
+\section{Design Decisions}
+
+The parent paper~\cite{Rosten-constexpr} identifies two crucial issues that must be understood when rolling out \constexpr\ in \cmath: namely error flags and the rounding mode. It is, however, well worth emphasising that these issues must have been confronted when allowing \Operators\ to be used in \constexpr\ contexts. Therefore, it would be most disconcerting if this were to provide a barrier to rolling out \constexpr\ in \cmath; nevertheless, both error flags and rounding mode are worthy of a proper discussion, which interested readers may find in~\cite{Rosten-constexpr}. What follows is a summary of the key points.
+
+\subsection{Global Flags}
+
+There are various scenarios under which certain functions in \cmath\ may set \code{errno} and/or raise exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
+\FEINEXACT. Drawing on the behaviour of \Operators\ for inspiration, the proposal of~\cite{Rosten-constexpr} is as follows:
+\begin{quotation}
+	Functions declared \constexpr, \emph{when used in a \constexpr
+context}, should give a compiler error if division by zero, domain errors or
+overflows occur. When not used in a \constexpr context, the various global
+flags should be set as normal.
+\end{quotation}
+At first sight, the distinction between these two contexts implies that many functions in \cmath\ may not be declared \constexpr\ as a pure library implementation. This is by no means the end of the world; however, the advent of \code{std::is\_constant\_evaluated()}~\cite{ConstEval}
+may mean that a pure library implementation is possible.
+
+\subsection{Rounding Mode}
+
+To facilitate discussion, \cite{Rosten-constexpr} defines two types of rounding-mod dependence: weak and strong. To illustrate weak dependence, consider
+\begin{equation}
+	\mbox{\code{constexpr double x\{10.0/3.0\}}}.
+\label{eq:10/3}
+\end{equation}
+As an artefact of the limited precision of floating-point arithmetic, the answer depends on the rounding mode. However, this does not stop us from making declarations such as~\eq{10/3}. Therefore, functions  within \cmath\ that exhibit such weak dependence are not ruled out from being declared \constexpr.
+
+This should be contrasted with strong dependence, which may be effectively illustrated by considering \code{float nearbyint(float x)}. The whole point of this function is to round depending on the runtime rounding mode, which may in principle be changed throughout a program's execution. It was therefore decided in~\cite{Rosten-constexpr} to exclude functions with strong dependence from being declared \constexpr\ and this paper does not overturn that.
+
+\subsection{Conditions for \constexpr}
+
+The conclusion of~\cite{Rosten-constexpr} was that two conditions may be used to systematically choose which functions in \cmath\ should be declared \constexpr. We reproduce these here, but strike out the first, since this paper proposes removing it as a restriction:
+
+\begin{proposal*}
+	function in \cmath\ shall be declared \constexpr if and only if:
+	\begin{enumerate}
+		\item \st{When taken to act on the set of rational numbers, the function is closed (excluding division 
+		by zero);}
+		
+		\item The function is not strongly dependent on the rounding mode.
+	\end{enumerate}
+\end{proposal*}
+
+
+
+
+
+\section{Impact On the Standard}
+
+This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath, together with a smattering in \complex. It may be possible to do this as a pure library extension if use is made of~\cite{ConstEval} but even without this it is hoped for the burden on compiler vendors to be minimal.
+
+
+\section{Future Directions}
+
+{\bf Nothing that springs to mind!}
+
+
+
+
+%\begin{acknowledgments}
+% Fill in as appropriate!
+%\end{acknowledgments}
+
+
+\begin{thebibliography}{1}
+	\bibitem[P0533]{Rosten-constexpr} Edward J.~Rosten and Oliver J.~Rosten, \constexpr\ for \cmath\ and \cstdlib.
+
+	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
+	
+	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
+	
+	\bibitem[N4791]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.	
+\end{thebibliography}
+
+\newpage
+
+%\begin{widetext}
+\onecolumngrid
+
+\section{Proposed Wording}
+
+\setlength{\parindent}{0pt}
+
+
+The following proposed changes refer to the Working Paper~\cite{WorkingPaper}. Highlighting in red indicates changes proposed in this paper, whilst green indicates changes proposed in the companion paper, \cite{Rosten-constexpr}.
+
+
+
+\subsection{Modifications to ``Header \header{complex} synposis'' [complex.syn]}
+
+// [complex.value.ops], {\em values }
+
+\vspace{2ex}
+
+\code{
+  	template<class T> constexpr T real(const complex<T>\&);
+	
+  	template<class T> constexpr T imag(const complex<T>\&);
+
+	\vspace{2ex}
+
+	template<class T> \highlight{constexpr} T abs(const complex<T>\&);
+ 	
+	template<class T> \highlight{constexpr} T arg(const complex<T>\&);
+	
+	template<class T> constexpr T norm(const complex<T>\&);
+	
+	\vspace{2ex}
+	
+	template<class T> constexpr conj(const complex<T>\&);
+	
+	template<class T> \highlight{constexpr} proj(const complex<T>\&);
+	
+	template<class T> \highlight{constexpr} polar(const T\&, const T\& = T());	
+
+}
+
+\vspace{2ex}
+
+// [complex.transcendentals], {\em transcendentals}
+
+\code{
+
+\vspace{2ex}
+  template<class T> \highlight{constexpr} complex<T> acos(const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> asin(const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> atan(const complex<T>\&);
+
+\vspace{2ex}
+
+  template<class T> \highlight{constexpr} complex<T> acosh(const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> asinh(const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> atanh(const complex<T>\&);
+
+\vspace{2ex}
+
+  template<class T> \highlight{constexpr} complex<T> cos  (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> cosh (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> exp  (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> log  (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> log10(const complex<T>\&);
+
+\vspace{2ex}
+
+  template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\&, const T\&);
+
+  template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\&, const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> pow  (const T\&, const complex<T>\&);
+
+\vspace{2ex}
+
+  template<class T> \highlight{constexpr} complex<T> sin  (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> sinh (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> sqrt (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> tan  (const complex<T>\&);
+
+  template<class T> \highlight{constexpr} complex<T> tanh (const complex<T>\&);
+}
+
+\subsection{Modifications to  ``Header \header{cmath} synopsis'' [cmath.syn]}
+
+
+\code{
+
+namespace std\{
+
+\vspace{2ex}
+\ldots
+\vspace{2ex}
+
+%% acos %%
+
+\highlight{constexpr} float acos(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double acos(double x);
+
+\highlight{constexpr} long double acos(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float acosf(float x);
+
+\highlight{constexpr} long double acosl(long double x);
+
+\vspace{2ex}
+
+%% asin %%
+
+\highlight{constexpr} float asin(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double asin(double x);
+
+\highlight{constexpr} long double asin(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float asinf(float x);
+
+\highlight{constexpr} long double asinl(long double x);
+
+\vspace{2ex}
+
+%% atan %%
+
+\highlight{constexpr} float atan(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double atan(double x);
+
+\highlight{constexpr} long double atan(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float atanf(float x);
+
+\highlight{constexpr} long double atanl(long double x);
+
+\vspace{2ex}
+
+%% atan2 %%
+
+\highlight{constexpr} float atan2(float y, float x); \stdcomment{library.c}
+
+\highlight{constexpr} double atan2(double y, double x);
+
+\highlight{constexpr} long double atan2(long double y, long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float atan2f(float y, float x);
+
+\highlight{constexpr} long double atan2l(long double y, long double x);
+
+\vspace{2ex}
+
+%% cos %%
+
+\highlight{constexpr} float cos(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double cos(double x);
+
+\highlight{constexpr} long double cos(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float cosf(float x);
+
+\highlight{constexpr} long double cosl(long double x);
+
+\vspace{2ex}
+
+%% sin %%
+
+\highlight{constexpr} float sin(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double sin(double x);
+
+\highlight{constexpr} long double sin(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float sinf(float x);
+
+\highlight{constexpr} long double sinl(long double x);
+
+\vspace{2ex}
+
+%% tan %%
+
+\highlight{constexpr} float tan(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double tan(double x);
+
+\highlight{constexpr} long double tan(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float tanf(float x);
+
+\highlight{constexpr} long double tanl(long double x);
+
+\vspace{2ex}
+
+%% acosh %%
+
+\highlight{constexpr} float acosh(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double acosh(double x);
+
+\highlight{constexpr} long double acosh(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float acoshf(float x);
+
+\highlight{constexpr} long double acoshl(long double x);
+
+\vspace{2ex}
+
+%% asinh %%
+
+\highlight{constexpr} float asinh(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double asinh(double x);
+
+\highlight{constexpr} long double asinh(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float asinhf(float x);
+
+\highlight{constexpr} long double asinhl(long double x);
+
+\vspace{2ex}
+
+%% atanh %%
+
+\highlight{constexpr} float atanh(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double atanh(double x);
+
+\highlight{constexpr} long double atanh(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float atanhf(float x);
+
+\highlight{constexpr} long double atanhl(long double x);
+
+\vspace{2ex}
+
+%% cosh %%
+
+\highlight{constexpr} float cosh(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double cosh(double x);
+
+\highlight{constexpr} long double cosh(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float coshf(float x);
+
+\highlight{constexpr} long double coshl(long double x);
+
+\vspace{2ex}
+
+%% sinh %%
+
+\highlight{constexpr} float sinh(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double sinh(double x);
+
+\highlight{constexpr} long double sinh(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float sinhf(float x);
+
+\highlight{constexpr} long double sinhl(long double x);
+
+\vspace{2ex}
+
+%% tanh %%
+
+\highlight{constexpr} float tanh(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double tanh(double x);
+
+\highlight{constexpr} long double tanh(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float tanhf(float x);
+
+\highlight{constexpr} long double tanhl(long double x);
+
+\vspace{2ex}
+
+%% exp %%
+
+\highlight{constexpr} float exp(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double exp(double x);
+
+\highlight{constexpr} long double exp(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float exp(float x);
+
+\highlight{constexpr} long double exp(long double x);
+
+\vspace{2ex}
+
+%% exp2 %%
+
+\highlight{constexpr} float exp2(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double exp2(double x);
+
+\highlight{constexpr} long double exp2(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float exp2(float x);
+
+\highlight{constexpr} long double exp2(long double x);
+
+\vspace{2ex}
+
+%% expml %%
+
+\highlight{constexpr} float expml(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double expml(double x);
+
+\highlight{constexpr} long double expml(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float expml(float x);
+
+\highlight{constexpr} long double expml(long double x);
+
+\vspace{2ex}
+
+%% frexp %%
+
+\oldhighlight{constexpr}  float frexp(float value, int* exp); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double frexp(double value, int* exp);
+
+\oldhighlight{constexpr}  long double frexp(long double value, int* exp); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float frexpf(float value, int* exp);
+
+\oldhighlight{constexpr}  long double frexpl(long double value, int* exp);
+
+\vspace{2ex}
+
+%% ilogb %%
+
+\oldhighlight{constexpr} int ilogb(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} int ilogb(double x);
+
+\oldhighlight{constexpr} int ilogb(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} int ilogbf(float x);
+
+\oldhighlight{constexpr} int ilogbl(long double x);
+
+\vspace{2ex}
+
+%% ldexp %%
+
+\oldhighlight{constexpr} float ldexp(float x, int exp); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double ldexp(double x, int exp);
+
+\oldhighlight{constexpr} long double ldexp(long double x, int exp); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float ldexpf(float x, int exp);
+
+\oldhighlight{constexpr} long double ldexpl(long double x, int exp);
+
+\vspace{2ex}
+
+%% log %%
+
+\highlight{constexpr} float log(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double log(double x);
+
+\highlight{constexpr} long double log(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float logf(float x);
+
+\highlight{constexpr} long double logl(long double x);
+
+\vspace{2ex}
+
+%% log 10 %%
+
+\highlight{constexpr} float log10(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double log10(double x);
+
+\highlight{constexpr} long double log10(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float log10f(float x);
+
+\highlight{constexpr} long double log10l(long double x);
+
+\vspace{2ex}
+
+%% loglp %%
+
+\highlight{constexpr} float log1p(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double log1p(double x);
+
+\highlight{constexpr}long double log1p(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float log1pf(float x);
+
+\highlight{constexpr} long double log1pl(long double x);
+
+\vspace{2ex}
+
+%% log2 %%
+
+\highlight{constexpr} float log2(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double log2(double x);
+
+\highlight{constexpr} long double log2(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float log2f(float x);
+
+\highlight{constexpr} long double log2l(long double x);
+
+\vspace{2ex}
+
+%% logb %%
+
+\oldhighlight{constexpr} float logb(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double logb(double x);
+
+\oldhighlight{constexpr} long double logb(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float logbf(float x);
+
+\oldhighlight{constexpr} long double logbl(long double x);
+
+\vspace{2ex}
+
+%% modf %%
+
+\oldhighlight{constexpr}  float modf(float value, float* iptr); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double modf(double value, double* iptr);
+
+\oldhighlight{constexpr}  long double modf(long double value, long double* iptr); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float modff(float value, float* iptr);
+
+\oldhighlight{constexpr}  long double modfl(long double value, long double* iptr);
+
+\vspace{2ex}
+
+%% scalbn %%
+
+\oldhighlight{constexpr} float scalbn(float x, int n); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double scalbn(double x, int n);
+
+\oldhighlight{constexpr} long double scalbn(long double x, int n); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float scalbnf(float x, int n);
+
+\oldhighlight{constexpr} long double scalbnl(long double x, int n);
+
+\vspace{2ex}
+
+%% scalbln %%
+
+\oldhighlight{constexpr} float scalbln(float x, long int n); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double scalbln(double x, long int n);
+
+\oldhighlight{constexpr} long double scalbln(long double x, long int n); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float scalblnf(float x, long int n);
+
+\oldhighlight{constexpr} long double scalblnl(long double x, long int n);
+
+\vspace{2ex}
+
+\highlight{constexpr} float cbrt(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double cbrt(double x);
+
+\highlight{constexpr} long double cbrt(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float cbrtf(float x);
+
+\highlight{constexpr} long double cbrtl(long double x);
+
+\vspace{2ex}
+
+//  [c.math.abs], {\em absolute values}
+
+%% abs %%
+
+\oldhighlight{constexpr} int abs(int j);
+
+\oldhighlight{constexpr} long int abs(long int j);
+
+\oldhighlight{constexpr} long long int abs(long long int j);
+
+\oldhighlight{constexpr} float abs(float j);
+
+\oldhighlight{constexpr} double abs(double j);
+
+\oldhighlight{constexpr}long double abs(long double j);
+
+\vspace{2ex}
+
+%% fabs %%
+
+\oldhighlight{constexpr} float fabs(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double fabs(double x);
+
+\oldhighlight{constexpr} long double fabs(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float fabsf(float x);
+
+\oldhighlight{constexpr} long double fabsl(long double x);
+
+\vspace{2ex}
+
+%% hypot %%
+
+\highlight{constexpr} float hypot(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr} double hypot(double x, double y);
+
+\highlight{constexpr} long double hypot(double x, double y); \stdcomment{library.c}
+
+\highlight{constexpr} float hypotf(float x, float y);
+
+\highlight{constexpr} long double hypotl(long double x, long double y);
+
+\vspace{2ex}
+
+// [c.math.hypot3], {\em three-dimensional hypotenuse}
+
+%% hypot3 5%
+
+\highlight{constexpr} float hypot(float x, float y, float z);
+
+\highlight{constexpr} double hypot(double x, double y, double z);
+
+\highlight{constexpr} long double hypot(long double x, long double y, long double z);
+
+%% pow %%
+
+\highlight{constexpr} float pow(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr} double pow(double x, double y);
+
+\highlight{constexpr} long double pow(double x, double y); \stdcomment{library.c}
+
+\highlight{constexpr} float pow(float x, float y);
+
+\highlight{constexpr} long double pow(long double x, long double y);
+
+\vspace{2ex}
+
+%% sqrt %%
+
+\highlight{constexpr} float sqrt(float x,; \stdcomment{library.c}
+
+\highlight{constexpr} double sqrt(double x);
+
+\highlight{constexpr} long double sqrt(double x); \stdcomment{library.c}
+
+\highlight{constexpr} float sqrtf(float x);
+
+\highlight{constexpr} long double sqrtl(long double x);
+
+\vspace{2ex}
+
+%% erf %%
+
+\highlight{constexpr} float erf(float x,; \stdcomment{library.c}
+
+\highlight{constexpr} double erf(double x);
+
+\highlight{constexpr} long double erf(double x); \stdcomment{library.c}
+
+\highlight{constexpr} float erff(float x);
+
+\highlight{constexpr} long double erfl(long double x);
+
+%% erfc %%
+
+\highlight{constexpr} float erfc(float x,; \stdcomment{library.c}
+
+\highlight{constexpr} double erfc(double x);
+
+\highlight{constexpr} long double erfc(double x); \stdcomment{library.c}
+
+\highlight{constexpr} float erfcf(float x);
+
+\highlight{constexpr} long double erfcl(long double x);
+
+%% lgamma %%
+
+\highlight{constexpr} float lgamma(float x,; \stdcomment{library.c}
+
+\highlight{constexpr} double lgamma(double x);
+
+\highlight{constexpr} long double lgamma(double x); \stdcomment{library.c}
+
+\highlight{constexpr} float lgamma(float x);
+
+\highlight{constexpr} long double lgamma(long double x);
+
+%% tgamma %%
+
+\highlight{constexpr} float tgamma(float x,; \stdcomment{library.c}
+
+\highlight{constexpr} double tgamma(double x);
+
+\highlight{constexpr} long double tgamma(double x); \stdcomment{library.c}
+
+\highlight{constexpr} float tgamma(float x);
+
+\highlight{constexpr} long double tgamma(long double x);
+
+
+%% ceil %%
+
+\oldhighlight{constexpr} float ceil(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double ceil(double x);
+
+\oldhighlight{constexpr} long double ceil(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float ceilf(float x);
+
+\oldhighlight{constexpr} long double ceill(long double x);
+
+\vspace{2ex}
+
+%% floor %%
+
+\oldhighlight{constexpr} float floor(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double floor(double x);
+
+\oldhighlight{constexpr} long double floor(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float floorf(float x);
+
+\oldhighlight{constexpr} long double floorl(long double x);
+
+\vspace{2ex}
+
+%% nearbyint %%
+
+float nearbyint(float x); \stdcomment{library.c}
+
+double nearbyint(double x);
+
+long double nearbyint(long double x); \stdcomment{library.c}
+
+ float nearbyintf(float x);
+
+ long double nearbyintl(long double x);
+
+\vspace{2ex}
+
+%% rint %%
+
+ float rint(float x); \stdcomment{library.c}
+
+ double rint(double x);
+
+long double rint(long double x); \stdcomment{library.c}
+
+ float rintf(float x);
+
+ long double rintl(long double x);
+
+\vspace{2ex}
+
+%% lrint %%
+
+long int lrint(float x); \stdcomment{library.c}
+
+ long int lrint(double x);
+
+long int lrint(long double x); \stdcomment{library.c}
+
+ long int lrintf(float x);
+
+long int lrintl(long double x);
+
+\vspace{2ex}
+
+%% llrint %%
+
+long long int llrint(float x); \stdcomment{library.c}
+
+long long int llrint(double x);
+
+long long int llrint(long double x); \stdcomment{library.c}
+
+long long int llrintf(float x);
+
+long long int llrintl(long double x);
+
+\vspace{2ex}
+
+%% round %%
+
+\oldhighlight{constexpr} float round(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double round(double x);
+
+\oldhighlight{constexpr} long double round(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float roundf(float x);
+
+\oldhighlight{constexpr} long double roundl(long double x);
+
+\vspace{2ex}
+
+%% lround %%
+
+\oldhighlight{constexpr} long int lround(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} long int lround(double x);
+
+\oldhighlight{constexpr} long int lround(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} long int lroundf(float x);
+
+\oldhighlight{constexpr} long int lroundl(long double x);
+
+\vspace{2ex}
+
+%% llround %%
+
+\oldhighlight{constexpr} long long int llround(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} long long int llround(double x);
+
+\oldhighlight{constexpr} long long int llround(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} long long int llroundf(float x);
+
+\oldhighlight{constexpr} long long int llroundl(long double x);
+
+\vspace{2ex}
+
+%% trunc %%
+
+\oldhighlight{constexpr} float trunc(float x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double trunc(double x);
+
+\oldhighlight{constexpr} long double trunc(long double x); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float truncf(float x);
+
+\oldhighlight{constexpr} long double truncl(long double x);
+
+\vspace{2ex}
+
+%% fmod %%
+
+\oldhighlight{constexpr} float fmod(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double fmod(double x, double y);
+
+\oldhighlight{constexpr} long double fmod(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float fmodf(float x, float y);
+
+\oldhighlight{constexpr} long double fmodl(long double x, long double y);
+
+\vspace{2ex}
+
+%% remainder %%
+
+\oldhighlight{constexpr} float remainder(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double remainder(double x, double y);
+
+\oldhighlight{constexpr} long double remainder(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float remainderf(float x, float y);
+
+\oldhighlight{constexpr} long double remainderl(long double x, long double y);
+
+\vspace{2ex}
+
+%% remquo %%
+
+\oldhighlight{constexpr}  float remquo(float x, float y, int* quo); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double remquo(double x, double y, int* quo);
+
+\oldhighlight{constexpr}  long double remquo(long double x, long double y, int* quo); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float remquof(float x, float y, int* quo);
+
+\oldhighlight{constexpr}  long double remquol(long double x, long double y, int* quo);
+
+\vspace{2ex}
+
+%% copysign %%
+
+\oldhighlight{constexpr} float copysign(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr} double copysign(double x, double y);
+
+\oldhighlight{constexpr} long double copysign(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr} float copysignf(float x, float y);
+
+\oldhighlight{constexpr} long double copysignl(long double x, long double y);
+
+\vspace{2ex}
+
+double nan(const char* tagp);
+
+float nanf(const char* tagp);
+
+long double nanl(const char* tagp);
+
+\vspace{2ex}
+
+%% nextafter %%
+
+\oldhighlight{constexpr}  float nextafter(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double nextafter(double x, double y);
+
+\oldhighlight{constexpr}  long double nextafter(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float nextafterf(float x, float y);
+
+\oldhighlight{constexpr}  long double nextafterl(long double x, long double y);
+
+\vspace{2ex}
+
+%% nexttoward %%
+
+\oldhighlight{constexpr}  float nexttoward(float x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double nexttoward(double x, long double y);
+
+\oldhighlight{constexpr}  long double nexttoward(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float nexttowardf(float x, long double y);
+
+\oldhighlight{constexpr}  long double nexttowardl(long double x, long double y);
+
+\vspace{2ex}
+
+%% fdim %%
+
+\oldhighlight{constexpr}  float fdim(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double fdim(double x, double y);
+
+\oldhighlight{constexpr}  long double fdim(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float fdimf(float x, float y);
+
+\oldhighlight{constexpr}  long double fdiml(long double x, long double y);
+
+\vspace{2ex}
+
+%% fmax %%
+
+\oldhighlight{constexpr}  float fmax(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double fmax(double x, double y);
+
+\oldhighlight{constexpr}  long double fmax(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float fmaxf(float x, float y);
+
+\oldhighlight{constexpr}  long double fmaxl(long double x, long double y);
+
+\vspace{2ex}
+
+%% fmin %%
+
+\oldhighlight{constexpr} float fmin(float x, float y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double fmin(double x, double y);
+
+\oldhighlight{constexpr}  long double fmin(long double x, long double y); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float fminf(float x, float y);
+
+\oldhighlight{constexpr} long double fminl(long double x, long double y);
+
+\vspace{2ex}
+
+%% fma %%
+
+\oldhighlight{constexpr}  float fma(float x, float y, float z); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  double fma(double x, double y, double z);
+
+\oldhighlight{constexpr}  long double fma(long double x, long double y, long double z); \stdcomment{library.c}
+
+\oldhighlight{constexpr}  float fmaf(float x, float y, float z);
+
+\oldhighlight{constexpr}  long double fmal(long double x, long double y, long double z);
+
+\vspace{2ex}
+
+// [c.math.fpclass], {\em classification / comparison functions:}
+
+%% fpclassify %%
+
+\oldhighlight{constexpr} int fpclassify(float x);
+
+\oldhighlight{constexpr} int fpclassify(double x);
+
+\oldhighlight{constexpr} int fpclassify(long double x);
+
+\vspace{2ex}
+
+%% isinfinite %%
+
+\oldhighlight{constexpr} int isfinite(float x);
+
+\oldhighlight{constexpr} int isfinite(double x);
+
+\oldhighlight{constexpr} int isfinite(long double x);
+
+\vspace{2ex}
+
+%% isinf %%
+
+\oldhighlight{constexpr} int isinf(float x);
+
+\oldhighlight{constexpr} int isinf(double x);
+
+\oldhighlight{constexpr} int isinf(long double x);
+
+\vspace{2ex}
+
+%% isnan %%
+
+\oldhighlight{constexpr} int isnan(float x);
+
+\oldhighlight{constexpr} int isnan(double x);
+
+\oldhighlight{constexpr} int isnan(long double x);
+
+\vspace{2ex}
+
+%% isnormal %%
+
+\oldhighlight{constexpr} int isnormal(float x);
+
+\oldhighlight{constexpr} int isnormal(double x);
+
+\oldhighlight{constexpr} int isnormal(long double x);
+
+\vspace{2ex}
+
+%% signbit %%
+
+\oldhighlight{constexpr} int signbit(float x);
+
+\oldhighlight{constexpr} int signbit(double x);
+
+\oldhighlight{constexpr} int signbit(long double x);
+
+\vspace{2ex}
+
+%% isgreater %%
+
+\oldhighlight{constexpr} int isgreater(float x, float y);
+
+\oldhighlight{constexpr} int isgreater(double x, double y);
+
+\oldhighlight{constexpr} int isgreater(long double x, long double y);
+
+\vspace{2ex}
+
+%% isgreaterequal %%
+
+\oldhighlight{constexpr} int isgreaterequal(float x, float y);
+
+\oldhighlight{constexpr} int isgreaterequal(double x, double y);
+
+\oldhighlight{constexpr} int isgreaterequal(long double x, long double y);
+
+\vspace{2ex}
+
+%% isless %%
+
+\oldhighlight{constexpr} int isless(float x, float y);
+
+\oldhighlight{constexpr} int isless(double x, double y);
+
+\oldhighlight{constexpr} int isless(long double x, long double y);
+
+\vspace{2ex}
+
+%% islessequal %%
+
+\oldhighlight{constexpr} int islessequal(float x, float y);
+
+\oldhighlight{constexpr} int islessequal(double x, double y);
+
+\oldhighlight{constexpr} int islessequal(long double x, long double y);
+
+\vspace{2ex}
+
+%% islessgreater %%
+
+\oldhighlight{constexpr} int islessgreater(float x, float y);
+
+\oldhighlight{constexpr} int islessgreater(double x, double y);
+
+\oldhighlight{constexpr} int islessgreater(long double x, long double y);
+
+\vspace{2ex}
+
+%% isunordered %%
+
+\oldhighlight{constexpr} int isunordered(float x, float y);
+
+\oldhighlight{constexpr} int isunordered(double x, double y);
+
+\oldhighlight{constexpr} int isunordered(long double x, long double y);
+
+\vspace{2ex}
+
+// [sf.cmath], {\em mathematical special functions:}
+
+\vspace{2ex}
+
+// [sf.cmath.assoc\_\_laguerre], {\em associated Laguerre polynomials}
+
+\vspace{2ex}
+
+\highlight{constexpr} double assoc\_laguerre(unsigned n, unsigned m, double x);
+	
+\highlight{constexpr} float assoc\_laguerref(unsigned n, unsigned m, float x);
+	
+\highlight{constexpr} long double assoc\_laguerrel(unsigned n, unsigned m, long double x);
+
+\vspace{2ex}
+
+// [sf.cmath.assoc\_\_legendre], {\em associated Laguerre polynomials}
+
+\vspace{2ex}
+
+\highlight{constexpr} double assoc\_legendre(unsigned n, unsigned m, double x);
+	
+\highlight{constexpr} float assoc\_legendref(unsigned n, unsigned m, float x);
+	
+\highlight{constexpr} long double assoc\_legendrel(unsigned n, unsigned m, long double x);
+
+\vspace{2ex}
+
+// [sf.cmath.beta], {\em beta function}
+
+\vspace{2ex}
+
+\highlight{constexpr} double beta(double x, double y);
+	
+\highlight{constexpr} float beatf(float x, float y
+	
+\highlight{constexpr} long double betal(long double x, long double y);
+
+\vspace{2ex}
+// [sf.cmath.comp\_\_ellint\_\_1], {\em complete elliptic integral of the first kind}
+\vspace{2ex}
+
+\highlight{constexpr} double comp\_ellint\_1(double k);
+	
+\highlight{constexpr} float comp\_ellint\_1f(float k);
+	
+\highlight{constexpr} long double comp\_ellint\_1l(long double k);
+
+\vspace{2ex}
+// [sf.cmath.comp\_\_ellint\_\_2], {\em complete elliptic integral of the second kind}
+\vspace{2ex}
+
+\highlight{constexpr} double comp\_ellint\_2(double k);
+	
+\highlight{constexpr} float comp\_ellint\_2f(float k);
+	
+\highlight{constexpr} long double comp\_ellint\_2l(long double k);
+
+\vspace{2ex}
+// [sf.cmath.comp\_\_ellint\_\_3], {\em complete elliptic integral of the third kind}
+\vspace{2ex}
+
+\highlight{constexpr} double comp\_ellint\_3(double k, double nu);
+	
+\highlight{constexpr} float comp\_ellint\_3f(float k, float nu);
+	
+\highlight{constexpr} long double comp\_ellint\_3l(long double k, long double nu);
+
+\vspace{2ex}
+// [sf.cmath.cyl\_\_bessel\_\_i, {\em regular modified cylindrical Bessel functions}
+\vspace{2ex}
+
+\highlight{constexpr} double cyl\_bessel\_1(double nu, double k);
+	
+\highlight{constexpr} float cyl\_bessel\_1f(float nu, float k);
+	
+\highlight{constexpr} long cyl\_bessel\_1l(long double nu, long double k);
+
+\vspace{2ex}
+// [sf.cmath.cyl\_\_bessel\_\_j], {\em cylindrical Bessel functions of the first kind}
+\vspace{2ex}
+
+\highlight{constexpr} double cyl\_bessel\_j(double nu, double k);
+	
+\highlight{constexpr} float cyl\_bessel\_jf(float nu, float k);
+	
+\highlight{constexpr} long cyl\_bessel\_jl(long double nu, long double k);
+
+\vspace{2ex}
+// [sf.cmath.cyl\_\_bessel\_\_k], {\em irregular modified cylindrical Bessel functions}
+\vspace{2ex}
+
+\highlight{constexpr} double cyl\_bessel\_k(double nu, double k);
+	
+\highlight{constexpr} float cyl\_bessel\_kf(float nu, float k);
+	
+\highlight{constexpr} long cyl\_bessel\_kl(long double nu, long double k);
+
+\vspace{2ex}
+// [sf.cmath.cyl\_\_neumann], {\em Cylindrical Neumann functions}
+\vspace{2ex}
+
+\highlight{constexpr} double cyl\_neumann(double nu, double x);
+	
+\highlight{constexpr} float cyl\_neumannf(float nu, float x);
+	
+\highlight{constexpr} long cyl\_neumannl(long double nu, long double x);
+
+\vspace{2ex}
+// [sf.cmath.ellint\_\_1], {\em incomplete elliptic integral of the first kind}
+\vspace{2ex}
+
+\highlight{constexpr} double ellint\_1(double k, double phi);
+	
+\highlight{constexpr} float ellint\_1f(float k, float phi);
+	
+\highlight{constexpr} long double ellint\_1l(long double k, long double phi);
+
+\vspace{2ex}
+// [sf.cmath.ellint\_\_2], {\em incomplete elliptic integral of the second kind}
+\vspace{2ex}
+
+\highlight{constexpr} double ellint\_2(double k, double phi);
+	
+\highlight{constexpr} float ellint\_2f(float k, float phi);
+	
+\highlight{constexpr} long double ellint\_2l(long double k, long double phi);
+
+\vspace{2ex}
+// [sf.cmath.ellint\_\_3], {\em incomplete elliptic integral of the third kind}
+\vspace{2ex}
+
+\highlight{constexpr} double ellint\_3(double k, double nu, double phi);
+	
+\highlight{constexpr} float ellint\_3f(float k, float nu, float phi);
+	
+\highlight{constexpr} long double ellint\_3l(long double k, long double nu, long double phi);
+
+\vspace{2ex}
+// [sf.cmath.expint], {\em exponential integral}
+\vspace{2ex}
+
+\highlight{constexpr} double expint(double x);
+	
+\highlight{constexpr} float expintf(float x);
+	
+\highlight{constexpr} long double expintl(long double x);
+
+\vspace{2ex}
+// [sf.cmath.hermite], {\em Hermite Polynomials}
+\vspace{2ex}
+
+\highlight{constexpr} double hermite(unsigned n, double x);
+	
+\highlight{constexpr} float hermitef(unsigned n, float x);
+	
+\highlight{constexpr} long double hermitel(unsigned n, long double x);
+
+\vspace{2ex}
+// [sf.cmath.laguerre], {\em Laguerre Polynomials}
+\vspace{2ex}
+
+\highlight{constexpr} double laguerre(unsigned n, double x);
+	
+\highlight{constexpr} float laguerref(unsigned n, float x);
+	
+\highlight{constexpr} long double laguerrel(unsigned n, long double x);
+
+\vspace{2ex}
+// [sf.cmath.legendre], {\em Legendre Polynomials''  }
+\vspace{2ex}
+
+\highlight{constexpr} double legendre(unsigned n, double x);
+	
+\highlight{constexpr} float legendref(unsigned n, float x);
+	
+\highlight{constexpr} long double legendrel(unsigned n, long double x);
+
+\vspace{2ex}
+// [sf.cmath.reimann\_\_zeta], {\em Reimann zeta function}
+\vspace{2ex}
+
+\highlight{constexpr} double reimann\_zeta(double x);
+	
+\highlight{constexpr} float reimann\_zetaf(float x);
+	
+\highlight{constexpr} long double reimann\_zetal(long double x);
+
+\vspace{2ex}
+// [sf.cmath.sph\_\_bessel], {\em Spherical Bessel functions of the first kind}
+\vspace{2ex}
+
+\highlight{constexpr} double sph\_bessel(unsigned n, double x);
+	
+\highlight{constexpr} float sph\_besself(unsigned n, float x);
+	
+\highlight{constexpr} long sph\_bessell(unsigned n, long double x);
+
+\vspace{2ex}
+// [sf.cmath.sph\_\_legendre], {\em spherical associated Legendre functions}
+\vspace{2ex}
+
+\highlight{constexpr} double sph\_legendre(unsigned l, unsigned m, double theta);
+	
+\highlight{constexpr} float sph\_legendref(unsigned l, unsigned m, float theta);
+	
+\highlight{constexpr} long sph\_legendrel(unsigned l, unsigned m, long double theta);
+
+\vspace{2ex}
+// [sf.cmath.sph\_\_neumann], {\em spherical Neumann functions}
+\vspace{2ex}
+
+\highlight{constexpr} double sph\_neumann(unsigned n, double x);
+	
+\highlight{constexpr} float sph\_neumann(unsigned n, float x);
+	
+\highlight{constexpr} long sph\_neumann(unsigned n, long double x);
+
+}
+
+\subsection{Modifications to ``Three-dimensional hypotenuse''  [c.math.hpot3]}
+
+\code{
+	\highlight{constexpr} float hypot(float x, float y); 
+
+	\highlight{constexpr} double hypot(double x, double y);
+
+	\highlight{constexpr} long double hypot(double x, double y); 
+}
+
+\subsection{Modifications to  ``Associated Laguerre polynomials''  [sf.cmath.assoc\_\_laguerre]}
+
+\code{
+	\highlight{constexpr} double assoc\_laguerre(unsigned n, unsigned m, double x);
+	
+	\highlight{constexpr} float assoc\_laguerref(unsigned n, unsigned m, float x);
+	
+	\highlight{constexpr} long double assoc\_laguerrel(unsigned n, unsigned m, long double x);
+
+}
+
+\subsection{Modifications to  ``Associated Laguerre polynomials''  [sf.cmath.assoc\_\_legendre]}
+
+\code{
+	\highlight{constexpr} double assoc\_legendre(unsigned n, unsigned m, double x);
+	
+	\highlight{constexpr} float assoc\_legendref(unsigned n, unsigned m, float x);
+	
+	\highlight{constexpr} long double assoc\_legendrel(unsigned n, unsigned m, long double x);
+
+}
+
+\subsection{Modifications to  ``Beta function''  [sf.cmath.beta]}
+
+\code{
+	\highlight{constexpr} double beta(double x, double y);
+	
+	\highlight{constexpr} float beatf(float x, float y
+	
+	\highlight{constexpr} long double betal(long double x, long double y);
+	
+}
+
+\subsection{Modifications to  ``Complete elliptic integral of the first kind''  [sf.cmath.comp\_\_ellint\_\_1]}
+
+\code{
+	\highlight{constexpr} double comp\_ellint\_1(double k);
+	
+	\highlight{constexpr} float comp\_ellint\_1f(float k);
+	
+	\highlight{constexpr} long double comp\_ellint\_1l(long double k);
+
+}
+
+\subsection{Modifications to  ``Complete elliptic integral of the second kind''  [sf.cmath.comp\_\_ellint\_\_2]}
+
+\code{
+	\highlight{constexpr} double comp\_ellint\_2(double k);
+	
+	\highlight{constexpr} float comp\_ellint\_2f(float k);
+	
+	\highlight{constexpr} long double comp\_ellint\_2l(long double k);
+
+}
+
+\subsection{Modifications to  ``Complete elliptic integral of the third kind''  [sf.cmath.comp\_\_ellint\_\_3]}
+
+\code{
+	\highlight{constexpr} double comp\_ellint\_3(double k, double nu);
+	
+	\highlight{constexpr} float comp\_ellint\_3f(float k, float nu);
+	
+	\highlight{constexpr} long double comp\_ellint\_3l(long double k, long double nu);
+
+}
+
+\subsection{Modifications to  ``Regular modified cylindrical Bessel functions''  [sf.cmath.cyl\_\_bessel\_\_i]}
+
+\code{
+	\highlight{constexpr} double cyl\_bessel\_1(double nu, double k);
+	
+	\highlight{constexpr} float cyl\_bessel\_1f(float nu, float k);
+	
+	\highlight{constexpr} long cyl\_bessel\_1l(long double nu, long double k);
+
+}
+
+\subsection{Modifications to  ``Cylindrical Bessel functions of the first kind''  [sf.cmath.cyl\_\_bessel\_\_j]}
+
+\code{
+	\highlight{constexpr} double cyl\_bessel\_j(double nu, double k);
+	
+	\highlight{constexpr} float cyl\_bessel\_jf(float nu, float k);
+	
+	\highlight{constexpr} long cyl\_bessel\_jl(long double nu, long double k);
+
+}
+
+\subsection{Modifications to  ``Irregular modified cylindrical Bessel functions''  [sf.cmath.cyl\_\_bessel\_\_k]}
+
+\code{
+	\highlight{constexpr} double cyl\_bessel\_k(double nu, double k);
+	
+	\highlight{constexpr} float cyl\_bessel\_kf(float nu, float k);
+	
+	\highlight{constexpr} long cyl\_bessel\_kl(long double nu, long double k);
+
+}
+
+
+\subsection{Modifications to  ``Cylindrical Neumann functions''  [sf.cmath.cyl\_\_neumann]}
+
+\code{
+	\highlight{constexpr} double cyl\_neumann(double nu, double x);
+	
+	\highlight{constexpr} float cyl\_neumannf(float nu, float x);
+	
+	\highlight{constexpr} long cyl\_neumannl(long double nu, long double x);
+
+}
+
+\subsection{Modifications to  ``Incomplete elliptic integral of the first kind''  [sf.cmath.ellint\_\_1]}
+
+\code{
+	\highlight{constexpr} double ellint\_1(double k, double phi);
+	
+	\highlight{constexpr} float ellint\_1f(float k, float phi);
+	
+	\highlight{constexpr} long double ellint\_1l(long double k, long double phi);
+
+}
+
+\subsection{Modifications to  ``Incomplete elliptic integral of the second kind''  [sf.cmath.ellint\_\_2]}
+
+\code{
+	\highlight{constexpr} double ellint\_2(double k, double phi);
+	
+	\highlight{constexpr} float ellint\_2f(float k, float phi);
+	
+	\highlight{constexpr} long double ellint\_2l(long double k, long double phi);
+
+}
+
+\subsection{Modifications to  ``Incomplete elliptic integral of the third kind''  [sf.cmath.ellint\_\_3]}
+
+\code{
+	\highlight{constexpr} double ellint\_3(double k, double nu, double phi);
+	
+	\highlight{constexpr} float ellint\_3f(float k, float nu, float phi);
+	
+	\highlight{constexpr} long double ellint\_3l(long double k, long double nu, long double phi);
+
+}
+
+\subsection{Modifications to  ``Exponential integral''  [sf.cmath.expint]}
+
+\code{
+	\highlight{constexpr} double expint(double x);
+	
+	\highlight{constexpr} float expintf(float x);
+	
+	\highlight{constexpr} long double expintl(long double x);
+
+}
+
+\subsection{Modifications to  ``Hermite Polynomials''  [sf.cmath.hermite]}
+
+\code{
+	\highlight{constexpr} double hermite(unsigned n, double x);
+	
+	\highlight{constexpr} float hermitef(unsigned n, float x);
+	
+	\highlight{constexpr} long double hermitel(unsigned n, long double x);
+
+}
+
+\subsection{Modifications to  ``Laguerre Polynomials''  [sf.cmath.laguerre]}
+
+\code{
+	\highlight{constexpr} double laguerre(unsigned n, double x);
+	
+	\highlight{constexpr} float laguerref(unsigned n, float x);
+	
+	\highlight{constexpr} long double laguerrel(unsigned n, long double x);
+
+}
+
+\subsection{Modifications to  ``Legendre Polynomials''  [sf.cmath.legendre]}
+
+\code{
+	\highlight{constexpr} double legendre(unsigned n, double x);
+	
+	\highlight{constexpr} float legendref(unsigned n, float x);
+	
+	\highlight{constexpr} long double legendrel(unsigned n, long double x);
+
+}
+
+
+\subsection{Modifications to  ``Reimann zeta function''  [sf.cmath.reimann\_\_zeta]}
+
+\code{
+	\highlight{constexpr} double reimann\_zeta(double x);
+	
+	\highlight{constexpr} float reimann\_zetaf(float x);
+	
+	\highlight{constexpr} long double reimann\_zetal(long double x);
+
+}
+
+\subsection{Modifications to  ``Spherical Bessel functions of the first kind''  [sf.cmath.sph\_\_bessel]}
+
+\code{
+	\highlight{constexpr} double sph\_bessel(unsigned n, double x);
+	
+	\highlight{constexpr} float sph\_besself(unsigned n, float x);
+	
+	\highlight{constexpr} long sph\_bessell(unsigned n, long double x);
+
+}
+
+
+\subsection{Modifications to  ``Spherical associated Legendre functions''  [sf.cmath.sph\_\_legendre]}
+
+\code{
+	\highlight{constexpr} double sph\_legendre(unsigned l, unsigned m, double theta);
+	
+	\highlight{constexpr} float sph\_legendref(unsigned l, unsigned m, float theta);
+	
+	\highlight{constexpr} long sph\_legendrel(unsigned l, unsigned m, long double theta);
+
+}
+
+\subsection{Modifications to  ``Spherical Neumann functions''  [sf.cmath.sph\_\_neumann]}
+
+\code{
+	\highlight{constexpr} double sph\_neumann(unsigned n, double x);
+	
+	\highlight{constexpr} float sph\_neumann(unsigned n, float x);
+	
+	\highlight{constexpr} long sph\_neumann(unsigned n, long double x);
+
+}
+
+\end{document}
