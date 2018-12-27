@@ -117,6 +117,7 @@ to those which are, in a sense, simple. Consequently, while there will be some b
 on compiler vendors it should be minimal. 
 
 \subsection{Rounding Mode}
+\label{sec:rounding}
 
 Some of the functions in \cmath\ depend on the rounding mode, which is something which may be changed at runtime. To facilitate the discussion, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
 
@@ -179,8 +180,8 @@ By means of a brief illustration, $\code{abs}$ satisfies all three criteria; how
 \section{State of the Art}
 
 Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
-Indeed, GCC 5.3.0 declares all functions, besides the special functions and those taking a pointer argument
-(cf.~\ref{sec:external}), as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose).
+Indeed, GCC 5.3.0 declares all functions, besides the special functions, those taking a pointer argument
+(cf.~\ref{sec:external}) and those with an explicit dependence on the runtime rounding mode (\ref{sec:rounding}) as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose).
 While clang does not go nearly as far as GCC, it does offer some functions as 
 builtins and is able to use them to perform compile time computations, constant
 propagation and so on. It is therefore hoped that any burden on compiler vendors implicit in this
@@ -429,7 +430,7 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 	
 	\item[R3] Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. Proposed a modification to [library.c].
 	
-	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension.
+	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension. Clarifications to the `state of the art'.
 \end{enumerate}
 
 \begin{acknowledgments}
