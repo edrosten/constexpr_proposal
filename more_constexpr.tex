@@ -89,8 +89,11 @@ As~\cite{Rosten-constexpr} has proceeded through the standardisation process, a 
 
 \section{State of the Art}
 
-{\bf TODO}
-
+With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), gcc renders everything in \cmath\ \constexpr. While, on the one hand \cite{Rosten-constexpr}, goes beyond gcc by proposing the functions such as
+\[
+	\mbox{\code{float modf(float value, float* iptr)}}
+\]
+are constexpr, on the other it is more conservative since functions such as \code{exp} are excluded. This paper removes restrictions of the latter type while going (further) beyond what gcc currently offers by including the special functions.
 
 \section{Design Decisions}
 
@@ -110,6 +113,7 @@ At first sight, the distinction between these two contexts implies that many fun
 may mean that a pure library implementation is possible.
 
 \subsection{Rounding Mode}
+\label{sec:rounding}
 
 To facilitate discussion, \cite{Rosten-constexpr} defines two types of rounding-mod dependence: weak and strong. To illustrate weak dependence, consider
 \begin{equation}
@@ -141,12 +145,6 @@ The conclusion of~\cite{Rosten-constexpr} was that two conditions may be used to
 \section{Impact On the Standard}
 
 This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath, together with a smattering in \complex. It may be possible to do this as a pure library extension if use is made of~\cite{ConstEval} but even without this it is hoped for the burden on compiler vendors to be minimal.
-
-
-\section{Future Directions}
-
-{\bf Nothing that springs to mind!}
-
 
 
 
@@ -759,6 +757,7 @@ namespace std\{
 
 \highlight{constexpr} long double erfl(long double x);
 
+\vspace{2ex}
 %% erfc %%
 
 \highlight{constexpr} float erfc(float x,; \stdcomment{library.c}
@@ -770,6 +769,8 @@ namespace std\{
 \highlight{constexpr} float erfcf(float x);
 
 \highlight{constexpr} long double erfcl(long double x);
+
+\vspace{2ex}
 
 %% lgamma %%
 
@@ -783,6 +784,7 @@ namespace std\{
 
 \highlight{constexpr} long double lgamma(long double x);
 
+\vspace{2ex}
 %% tgamma %%
 
 \highlight{constexpr} float tgamma(float x,; \stdcomment{library.c}
@@ -795,7 +797,7 @@ namespace std\{
 
 \highlight{constexpr} long double tgamma(long double x);
 
-
+\vspace{2ex}
 %% ceil %%
 
 \oldhighlight{constexpr} float ceil(float x); \stdcomment{library.c}
@@ -1222,7 +1224,7 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [sf.cmath.assoc\_\_legendre], {\em associated Laguerre polynomials}
+// [sf.cmath.assoc\_\_legendre], {\em associated Legendre polynomials}
 
 \vspace{2ex}
 
@@ -1447,7 +1449,7 @@ long double nanl(const char* tagp);
 
 }
 
-\subsection{Modifications to  ``Associated Laguerre polynomials''  [sf.cmath.assoc\_\_legendre]}
+\subsection{Modifications to  ``Associated Legendre polynomials''  [sf.cmath.assoc\_\_legendre]}
 
 \code{
 	\highlight{constexpr} double assoc\_legendre(unsigned n, unsigned m, double x);
