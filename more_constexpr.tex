@@ -1,5 +1,5 @@
 \documentclass[prd,twocolumn,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
-
+\it
 \usepackage{xspace} %Dude this will blow your mind!
 \usepackage{amsthm}
 \usepackage{color}
@@ -23,7 +23,7 @@
 
 \newcommand{\highlight}[1]{{\color{red} #1}}
 \newcommand{\oldhighlight}[1]{{\color{green} #1}}
-\newcommand{\stdcomment}[1]{{// {\em see} [#1]}}
+\newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
 
@@ -181,7 +181,7 @@ The following proposed changes refer to the Working Paper~\cite{WorkingPaper}. H
 
 \subsection{Modifications to ``Header \header{complex} synposis'' [complex.syn]}
 
-// [complex.value.ops], {\em values }
+// [complex.value.ops], {\it values }
 
 \vspace{2ex}
 
@@ -210,7 +210,7 @@ The following proposed changes refer to the Working Paper~\cite{WorkingPaper}. H
 
 \vspace{2ex}
 
-// [complex.transcendentals], {\em transcendentals}
+// [complex.transcendentals], {\it transcendentals}
 
 \code{
 
@@ -463,9 +463,9 @@ namespace std\{
 
 \highlight{constexpr} long double exp(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} float exp(float x);
+\highlight{constexpr} float expf(float x);
 
-\highlight{constexpr} long double exp(long double x);
+\highlight{constexpr} long double expl(long double x);
 
 \vspace{2ex}
 
@@ -477,23 +477,23 @@ namespace std\{
 
 \highlight{constexpr} long double exp2(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} float exp2(float x);
+\highlight{constexpr} float exp2f(float x);
 
-\highlight{constexpr} long double exp2(long double x);
+\highlight{constexpr} long double exp2l(long double x);
 
 \vspace{2ex}
 
-%% expml %%
+%% expm1 %%
 
-\highlight{constexpr} float expml(float x); \stdcomment{library.c}
+\highlight{constexpr} float expm1(float x); \stdcomment{library.c}
 
-\highlight{constexpr} double expml(double x);
+\highlight{constexpr} double expm1(double x);
 
-\highlight{constexpr} long double expml(long double x); \stdcomment{library.c}
+\highlight{constexpr} long double expm1(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} float expml(float x);
+\highlight{constexpr} float expm1f(float x);
 
-\highlight{constexpr} long double expml(long double x);
+\highlight{constexpr} long double expm1l(long double x);
 
 \vspace{2ex}
 
@@ -663,7 +663,7 @@ namespace std\{
 
 \vspace{2ex}
 
-//  [c.math.abs], {\em absolute values}
+//  [c.math.abs], {\it absolute values}
 
 %% abs %%
 
@@ -701,7 +701,7 @@ namespace std\{
 
 \highlight{constexpr} double hypot(double x, double y);
 
-\highlight{constexpr} long double hypot(double x, double y); \stdcomment{library.c}
+\highlight{constexpr} long double hypot(long double x, long double y); \stdcomment{library.c}
 
 \highlight{constexpr} float hypotf(float x, float y);
 
@@ -709,7 +709,7 @@ namespace std\{
 
 \vspace{2ex}
 
-// [c.math.hypot3], {\em three-dimensional hypotenuse}
+// [c.math.hypot3], {\it three-dimensional hypotenuse}
 
 %% hypot3 5%
 
@@ -728,9 +728,9 @@ namespace std\{
 
 \highlight{constexpr} long double pow(double x, double y); \stdcomment{library.c}
 
-\highlight{constexpr} float pow(float x, float y);
+\highlight{constexpr} float powf(float x, float y);
 
-\highlight{constexpr} long double pow(long double x, long double y);
+\highlight{constexpr} long double powl(long double x, long double y);
 
 \vspace{2ex}
 
@@ -750,11 +750,11 @@ namespace std\{
 
 %% erf %%
 
-\highlight{constexpr} float erf(float x,; \stdcomment{library.c}
+\highlight{constexpr} float erf(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double erf(double x);
 
-\highlight{constexpr} long double erf(double x); \stdcomment{library.c}
+\highlight{constexpr} long double erf(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float erff(float x);
 
@@ -763,11 +763,11 @@ namespace std\{
 \vspace{2ex}
 %% erfc %%
 
-\highlight{constexpr} float erfc(float x,; \stdcomment{library.c}
+\highlight{constexpr} float erfc(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double erfc(double x);
 
-\highlight{constexpr} long double erfc(double x); \stdcomment{library.c}
+\highlight{constexpr} long double erfc(long double x); \stdcomment{library.c}
 
 \highlight{constexpr} float erfcf(float x);
 
@@ -777,28 +777,28 @@ namespace std\{
 
 %% lgamma %%
 
-\highlight{constexpr} float lgamma(float x,; \stdcomment{library.c}
+\highlight{constexpr} float lgamma(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double lgamma(double x);
 
-\highlight{constexpr} long double lgamma(double x); \stdcomment{library.c}
+\highlight{constexpr} long double lgamma(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} float lgamma(float x);
+\highlight{constexpr} float lgammaf(float x);
 
-\highlight{constexpr} long double lgamma(long double x);
+\highlight{constexpr} long double lgammal(long double x);
 
 \vspace{2ex}
 %% tgamma %%
 
-\highlight{constexpr} float tgamma(float x,; \stdcomment{library.c}
+\highlight{constexpr} float tgamma(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double tgamma(double x);
 
-\highlight{constexpr} long double tgamma(double x); \stdcomment{library.c}
+\highlight{constexpr} long double tgamma(long double x); \stdcomment{library.c}
 
-\highlight{constexpr} float tgamma(float x);
+\highlight{constexpr} float tgammaf(float x);
 
-\highlight{constexpr} long double tgamma(long double x);
+\highlight{constexpr} long double tgammal(long double x);
 
 \vspace{2ex}
 %% ceil %%
@@ -1089,7 +1089,7 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [c.math.fpclass], {\em classification / comparison functions:}
+// [c.math.fpclass], {\it classification / comparison functions:}
 
 %% fpclassify %%
 
@@ -1211,11 +1211,11 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [sf.cmath], {\em mathematical special functions:}
+// [sf.cmath], {\it mathematical special functions:}
 
 \vspace{2ex}
 
-// [sf.cmath.assoc\bigund laguerre], {\em associated Laguerre polynomials}
+// [sf.cmath.assoc\bigund laguerre], {\it associated Laguerre polynomials}
 
 \vspace{2ex}
 
@@ -1227,7 +1227,7 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [sf.cmath.assoc{\bigund}legendre], {\em associated Legendre polynomials}
+// [sf.cmath.assoc{\bigund}legendre], {\it associated Legendre functions}
 
 \vspace{2ex}
 
@@ -1239,18 +1239,18 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [sf.cmath.beta], {\em beta function}
+// [sf.cmath.beta], {\it beta function}
 
 \vspace{2ex}
 
 \highlight{constexpr} double beta(double x, double y);
 	
-\highlight{constexpr} float beatf(float x, float y
+\highlight{constexpr} float beatf(float x, float y);
 	
 \highlight{constexpr} long double betal(long double x, long double y);
 
 \vspace{2ex}
-// [sf.cmath.comp{\bigund}ellint{\bigund}1], {\em complete elliptic integral of the first kind}
+// [sf.cmath.comp{\bigund}ellint{\bigund}1], {\it complete elliptic integral of the first kind}
 \vspace{2ex}
 
 \highlight{constexpr} double comp\_ellint\_1(double k);
@@ -1260,7 +1260,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double comp\_ellint\_1l(long double k);
 
 \vspace{2ex}
-// [sf.cmath.comp{\bigund}ellint{\bigund}2], {\em complete elliptic integral of the second kind}
+// [sf.cmath.comp{\bigund}ellint{\bigund}2], {\it complete elliptic integral of the second kind}
 \vspace{2ex}
 
 \highlight{constexpr} double comp\_ellint\_2(double k);
@@ -1270,7 +1270,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double comp\_ellint\_2l(long double k);
 
 \vspace{2ex}
-// [sf.cmath.comp{\bigund}ellint{\bigund}3], {\em complete elliptic integral of the third kind}
+// [sf.cmath.comp{\bigund}ellint{\bigund}3], {\it complete elliptic integral of the third kind}
 \vspace{2ex}
 
 \highlight{constexpr} double comp\_ellint\_3(double k, double nu);
@@ -1280,7 +1280,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double comp\_ellint\_3l(long double k, long double nu);
 
 \vspace{2ex}
-// [sf.cmath.cyl{\bigund}bessel{\bigund}i, {\em regular modified cylindrical Bessel functions}
+// [sf.cmath.cyl{\bigund}bessel{\bigund}i, {\it regular modified cylindrical Bessel functions}
 \vspace{2ex}
 
 \highlight{constexpr} double cyl\_bessel\_1(double nu, double k);
@@ -1290,7 +1290,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long cyl\_bessel\_1l(long double nu, long double k);
 
 \vspace{2ex}
-// [sf.cmath.cyl{\bigund}bessel{\bigund}j], {\em cylindrical Bessel functions of the first kind}
+// [sf.cmath.cyl{\bigund}bessel{\bigund}j], {\it cylindrical Bessel functions of the first kind}
 \vspace{2ex}
 
 \highlight{constexpr} double cyl\_bessel\_j(double nu, double k);
@@ -1300,7 +1300,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long cyl\_bessel\_jl(long double nu, long double k);
 
 \vspace{2ex}
-// [sf.cmath.cyl{\bigund}bessel{\bigund}k], {\em irregular modified cylindrical Bessel functions}
+// [sf.cmath.cyl{\bigund}bessel{\bigund}k], {\it irregular modified cylindrical Bessel functions}
 \vspace{2ex}
 
 \highlight{constexpr} double cyl\_bessel\_k(double nu, double k);
@@ -1310,7 +1310,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long cyl\_bessel\_kl(long double nu, long double k);
 
 \vspace{2ex}
-// [sf.cmath.cyl{\bigund}neumann], {\em Cylindrical Neumann functions}
+// [sf.cmath.cyl{\bigund}neumann], {\it Cylindrical Neumann functions}
 \vspace{2ex}
 
 \highlight{constexpr} double cyl\_neumann(double nu, double x);
@@ -1320,7 +1320,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long cyl\_neumannl(long double nu, long double x);
 
 \vspace{2ex}
-// [sf.cmath.ellint{\bigund}1], {\em incomplete elliptic integral of the first kind}
+// [sf.cmath.ellint{\bigund}1], {\it incomplete elliptic integral of the first kind}
 \vspace{2ex}
 
 \highlight{constexpr} double ellint\_1(double k, double phi);
@@ -1330,7 +1330,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double ellint\_1l(long double k, long double phi);
 
 \vspace{2ex}
-// [sf.cmath.ellint{\bigund}2], {\em incomplete elliptic integral of the second kind}
+// [sf.cmath.ellint{\bigund}2], {\it incomplete elliptic integral of the second kind}
 \vspace{2ex}
 
 \highlight{constexpr} double ellint\_2(double k, double phi);
@@ -1340,7 +1340,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double ellint\_2l(long double k, long double phi);
 
 \vspace{2ex}
-// [sf.cmath.ellint{\bigund}3], {\em incomplete elliptic integral of the third kind}
+// [sf.cmath.ellint{\bigund}3], {\it incomplete elliptic integral of the third kind}
 \vspace{2ex}
 
 \highlight{constexpr} double ellint\_3(double k, double nu, double phi);
@@ -1350,7 +1350,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double ellint\_3l(long double k, long double nu, long double phi);
 
 \vspace{2ex}
-// [sf.cmath.expint], {\em exponential integral}
+// [sf.cmath.expint], {\it exponential integral}
 \vspace{2ex}
 
 \highlight{constexpr} double expint(double x);
@@ -1360,7 +1360,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double expintl(long double x);
 
 \vspace{2ex}
-// [sf.cmath.hermite], {\em Hermite Polynomials}
+// [sf.cmath.hermite], {\it Hermite Polynomials}
 \vspace{2ex}
 
 \highlight{constexpr} double hermite(unsigned n, double x);
@@ -1370,7 +1370,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double hermitel(unsigned n, long double x);
 
 \vspace{2ex}
-// [sf.cmath.laguerre], {\em Laguerre Polynomials}
+// [sf.cmath.laguerre], {\it Laguerre Polynomials}
 \vspace{2ex}
 
 \highlight{constexpr} double laguerre(unsigned n, double x);
@@ -1380,7 +1380,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double laguerrel(unsigned n, long double x);
 
 \vspace{2ex}
-// [sf.cmath.legendre], {\em Legendre Polynomials''  }
+// [sf.cmath.legendre], {\it Legendre Polynomials}
 \vspace{2ex}
 
 \highlight{constexpr} double legendre(unsigned n, double x);
@@ -1390,7 +1390,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double legendrel(unsigned n, long double x);
 
 \vspace{2ex}
-// [sf.cmath.reimann{\bigund}zeta], {\em Reimann zeta function}
+// [sf.cmath.reimann{\bigund}zeta], {\it Reimann zeta function}
 \vspace{2ex}
 
 \highlight{constexpr} double reimann\_zeta(double x);
@@ -1400,7 +1400,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long double reimann\_zetal(long double x);
 
 \vspace{2ex}
-// [sf.cmath.sph{\bigund}bessel], {\em Spherical Bessel functions of the first kind}
+// [sf.cmath.sph{\bigund}bessel], {\it spherical Bessel functions of the first kind}
 \vspace{2ex}
 
 \highlight{constexpr} double sph\_bessel(unsigned n, double x);
@@ -1410,7 +1410,7 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long sph\_bessell(unsigned n, long double x);
 
 \vspace{2ex}
-// [sf.cmath.sph{\bigund}legendre], {\em spherical associated Legendre functions}
+// [sf.cmath.sph{\bigund}legendre], {\it spherical associated Legendre functions}
 \vspace{2ex}
 
 \highlight{constexpr} double sph\_legendre(unsigned l, unsigned m, double theta);
@@ -1420,8 +1420,8 @@ long double nanl(const char* tagp);
 \highlight{constexpr} long sph\_legendrel(unsigned l, unsigned m, long double theta);
 
 \vspace{2ex}
-// [sf.cmath.sph{\bigund}neumann], {\em spherical Neumann functions}
-\vspace{2ex}
+// [sf.cmath.sph{\bigund}neumann], {\it spherical Neumann functions} \newline
+// {\it spherical Bessel functions of the second kind}
 
 \highlight{constexpr} double sph\_neumann(unsigned n, double x);
 	
@@ -1452,7 +1452,7 @@ long double nanl(const char* tagp);
 
 }
 
-\subsection{Modifications to  ``Associated Legendre polynomials''  [sf.cmath.assoc{\bigund}legendre]}
+\subsection{Modifications to  ``Associated Legendre functions''  [sf.cmath.assoc{\bigund}legendre]}
 
 \code{
 	\highlight{constexpr} double assoc\_legendre(unsigned n, unsigned m, double x);
@@ -1468,7 +1468,7 @@ long double nanl(const char* tagp);
 \code{
 	\highlight{constexpr} double beta(double x, double y);
 	
-	\highlight{constexpr} float beatf(float x, float y
+	\highlight{constexpr} float beatf(float x, float y);
 	
 	\highlight{constexpr} long double betal(long double x, long double y);
 	
