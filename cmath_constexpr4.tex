@@ -1,5 +1,5 @@
 \documentclass[prd,twocolumn,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
-
+\it
 \usepackage{xspace} %Dude this will blow your mind!
 \usepackage{amsthm}
 \usepackage{color}
@@ -21,7 +21,7 @@
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
 \newcommand{\highlight}[1]{{\color{red} #1}}
-\newcommand{\stdcomment}[1]{{// {\em see} [#1]}}
+\newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
 
@@ -691,7 +691,7 @@ long double cbrtl(long double x);
 
 \vspace{2ex}
 
-//  [c.math.abs], {\em absolute values}
+//  [c.math.abs], {\it absolute values}
 
 \highlight{constexpr} int abs(int j);
 
@@ -731,7 +731,7 @@ long double hypotl(long double x, long double y);
 
 \vspace{2ex}
 
-// [c.math.hypot3], {\em three-dimensional hypotenuse}
+// [c.math.hypot3], {\it three-dimensional hypotenuse}
 
 float hypot(float x, float y, float z);
 
@@ -991,7 +991,7 @@ long double nanl(const char* tagp);
 
 \vspace{2ex}
 
-// [c.math.fpclass], {\em classification / comparison functions:}
+// [c.math.fpclass], {\it classification / comparison functions:}
 
 \highlight{constexpr} int fpclassify(float x);
 
