@@ -91,7 +91,8 @@ As~\cite{Rosten-constexpr} has proceeded through the standardisation process, a 
 
 \section{State of the Art}
 
-With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), gcc renders everything in \cmath\ \constexpr. While, on the one hand \cite{Rosten-constexpr}, goes beyond gcc by proposing the functions such as
+With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), gcc renders everything in \cmath\ \constexpr\footnote{While clang does not, it does perform compile time evaluation of many mathematical functions during optimisation.
+}. While, on the one hand \cite{Rosten-constexpr}, goes beyond gcc by proposing the functions such as
 \[
 	\mbox{\code{float modf(float value, float* iptr)}}
 \]
