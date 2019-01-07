@@ -94,6 +94,7 @@ which are in a sense no more complicated than the elementary arithmetic operatio
 Indeed, two subtleties can be resolved by appealing to the fact that they must be dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections. Following this, a justification is given for declaring functions in \cmath\ which modify an argument with external visibility to be \constexpr. These considerations lead to a concrete statement of the conditions under which a function should be declared \constexpr.
 
 \subsection{Global Flags}
+\label{sec:global}
 
 Under certain conditions, various functions in \cmath\ may set global flags.
 Specifically, \code{errno} may be set and/or the various floating-point
@@ -188,6 +189,7 @@ propagation and so on. It is therefore hoped that any burden on compiler vendors
 proposal is minimal.
 
 \section{Impact On the Standard}
+\label{sec:impact}
 
 This proposal adds an extra requirement to [expr.const] pertaining to the definition of what constitutes a constant expression. In particular, if a mathematical function encounters a domain error or overflow, then it may not form part of a constant expression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$, \cite{ConstEval} it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case.
 
@@ -430,7 +432,7 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 	
 	\item[R3] Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. Proposed a modification to [library.c].
 	
-	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension. Clarifications to the `state of the art'.
+	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension---see the final paragraph of~\ref{sec:global} and the first of \ref{sec:impact}. Clarifications to the `state of the art'.
 \end{enumerate}
 
 \begin{acknowledgments}
