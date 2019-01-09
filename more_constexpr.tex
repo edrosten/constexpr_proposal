@@ -89,14 +89,15 @@ The broad strategy of~\cite{Rosten-constexpr} is to focus on those functions whi
 As~\cite{Rosten-constexpr} has proceeded through the standardisation process, a collective desire has arisen to extend the scope to include much of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}.
 
 
-\section{State of the Art}
+\section{State of the Art and Impact on Implementers}
 
-With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), gcc renders everything in \cmath\ \constexpr\footnote{Though clang does not, it does perform compile time evaluation of many mathematical functions during optimisation.
-}. While, on the one hand, \cite{Rosten-constexpr} goes beyond gcc by proposing the functions such as
+With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), gcc renders everything in \cmath\ \constexpr. While, on the one hand, \cite{Rosten-constexpr} goes beyond gcc by proposing the functions such as
 \[
 	\mbox{\code{float modf(float value, float* iptr)}}
 \]
 are constexpr, on the other it is more conservative since functions such as \code{exp} are excluded. This paper removes restrictions of the latter type while going (further) beyond what gcc currently offers by including the special functions.
+
+Though clang does not have \constexpr implementations, it does perform compile time evaluation of many mathematical functions (but not the special functions) during optimisation. The existence of compile time evaluation in GCC and clang demonstrates that implementation of this proposal is feasible.
 
 \section{Design Decisions}
 
