@@ -99,6 +99,42 @@ are constexpr, on the other it is more conservative since functions such as \cod
 
 Though clang does not have \constexpr implementations, it does perform compile time evaluation of many mathematical functions (but not the special functions) during optimisation. The existence of compile time evaluation in GCC and clang demonstrates that implementation of this proposal is feasible.
 
+\subsection{Interation with the C standard library}
+
+In [library.c] it is noted that the \cmath\ makes available the facilities of
+the C standard library. One interpretation of this is that the C++
+implementation could use one of several different C standard libraries and so
+constraining translation time behaviour would make it difficult to give results
+that are consistent between translation time and runtime.
+
+Since that is not a requirement, some compilers already assume knowledge of
+the C standard library.  For example, consider the following code
+snippet:
+
+\begin{Verbatim}
+#include <cmath>
+double f(){return std::sin(1e100);}
+\end{Verbatim}
+
+For such code, almost any value is reasonable and so it would not be expected to
+be consistent across library implementations.  However, on clang (targeting
+x64), the following code is emitted, demonstrating that the result is generated
+by the compiler, independent of the C library:
+\begin{Verbatim}
+.LCPI0_0:
+	.quad	-4622843457162800295 
+_Z1fv:
+	movsd	.LCPI0_0(%rip), %xmm0
+	retq
+\end{Verbatim}
+and on GCC, similar code is generated.
+
+While it is desirable to have consistent behaviour between runtime and
+translation time, in practice, all floating point is already subject to
+differences between since even with elementary constexpr arithmetic, the
+rounding mode can be changed at runtime.
+
+
 \section{Design Decisions}
 
 The parent paper~\cite{Rosten-constexpr} identifies two crucial issues that must be understood when rolling out \constexpr\ in \cmath: namely error flags and the rounding mode. It is, however, well worth emphasising that these issues must have been confronted when allowing \Operators\ to be used in \constexpr\ contexts. Therefore, it would be most disconcerting if this were to provide a barrier to rolling out \constexpr\ in \cmath; nevertheless, both error flags and rounding mode are worthy of a proper discussion, which interested readers may find in~\cite{Rosten-constexpr}. What follows is a summary of the key points.
