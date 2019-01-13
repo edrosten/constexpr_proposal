@@ -86,7 +86,7 @@ This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to sign
 Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which it is arguably perverse to still be unavailable for compile-time computation. Indeed, subsequent to~\cite{AP-complex}, the situation has actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify this, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
 
 The broad strategy of~\cite{Rosten-constexpr} is to focus on those functions which are, in a sense, no more complicated than the arithmetic operators \Operators; the rationale for this being that the latter are already available in a \constexpr\ context.
-As~\cite{Rosten-constexpr} has proceeded through the standardisation process, a collective desire has arisen to extend the scope to include much of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}.
+As~\cite{Rosten-constexpr} has proceeded through the standardisation process, a collective desire has arisen to extend the scope to include a significant amount of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}. However, it seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.
 
 
 \section{State of the Art and Impact on Implementers}
@@ -95,7 +95,7 @@ With the exception of the special functions [sf.cmath], functions taking a point
 \[
 	\mbox{\code{float modf(float value, float* iptr)}}
 \]
-are constexpr, on the other it is more conservative since functions such as \code{exp} are excluded. This paper removes restrictions of the latter type while going (further) beyond what gcc currently offers by including the special functions.
+are constexpr, on the other it is more conservative since functions such as \code{exp} are excluded. This paper removes restrictions of the latter type.
 
 Though clang does not have \constexpr implementations, it does perform compile time evaluation of many mathematical functions (but not the special functions) during optimisation. The existence of compile time evaluation in GCC and clang demonstrates that implementation of this proposal is feasible.
 
@@ -130,20 +130,24 @@ This should be contrasted with strong dependence, which may be effectively illus
 
 \subsection{Conditions for \constexpr}
 
-The conclusion of~\cite{Rosten-constexpr} was that two conditions may be used to systematically choose which functions in \cmath\ should be declared \constexpr. We reproduce these here, but strike out the first, since this paper proposes removing it as a restriction:
+The conclusion of~\cite{Rosten-constexpr} was that two conditions may be used to systematically choose which functions in \cmath\ should be declared \constexpr. We reproduce these here, striking out the original form of the first, since this paper proposes removing it as a restriction:
 
 \begin{proposal*}
-	function in \cmath\ shall be declared \constexpr if and only if:
+	A function in \cmath\ shall be declared \constexpr if and only if:
 	\begin{enumerate}
 		\item \st{When taken to act on the set of rational numbers, the function is closed (excluding division 
 		by zero);}
+		
+		The function does not belong to [sf.cmath];
 		
 		\item The function is not strongly dependent on the rounding mode.
 	\end{enumerate}
 \end{proposal*}
 
 
+\subsection{Trigonometric Functions}
 
+The inclusion or otherwise of the trigonometric functions in this proposal merits its own discussion. As pointed out by Richard Smith [private communication]
 
 
 \section{Impact On the Standard}
@@ -165,6 +169,7 @@ This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath
 	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
 	
 	\bibitem[N4791]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.	
+	
 \end{thebibliography}
 
 \newpage
@@ -1211,227 +1216,8 @@ long double nanl(const char* tagp);
 
 \oldhighlight{constexpr} int isunordered(long double x, long double y);
 
-\vspace{2ex}
-
-// [sf.cmath], {\it mathematical special functions:}
-
-\vspace{2ex}
-
-// [sf.cmath.assoc\bigund laguerre], {\it associated Laguerre polynomials}
-
-\vspace{2ex}
-
-\highlight{constexpr} double assoc\_laguerre(unsigned n, unsigned m, double x);
-	
-\highlight{constexpr} float assoc\_laguerref(unsigned n, unsigned m, float x);
-	
-\highlight{constexpr} long double assoc\_laguerrel(unsigned n, unsigned m, long double x);
-
-\vspace{2ex}
-
-// [sf.cmath.assoc{\bigund}legendre], {\it associated Legendre functions}
-
-\vspace{2ex}
-
-\highlight{constexpr} double assoc\_legendre(unsigned n, unsigned m, double x);
-	
-\highlight{constexpr} float assoc\_legendref(unsigned n, unsigned m, float x);
-	
-\highlight{constexpr} long double assoc\_legendrel(unsigned n, unsigned m, long double x);
-
-\vspace{2ex}
-
-// [sf.cmath.beta], {\it beta function}
-
-\vspace{2ex}
-
-\highlight{constexpr} double beta(double x, double y);
-	
-\highlight{constexpr} float beatf(float x, float y);
-	
-\highlight{constexpr} long double betal(long double x, long double y);
-
-\vspace{2ex}
-// [sf.cmath.comp{\bigund}ellint{\bigund}1], {\it complete elliptic integral of the first kind}
-\vspace{2ex}
-
-\highlight{constexpr} double comp\_ellint\_1(double k);
-	
-\highlight{constexpr} float comp\_ellint\_1f(float k);
-	
-\highlight{constexpr} long double comp\_ellint\_1l(long double k);
-
-\vspace{2ex}
-// [sf.cmath.comp{\bigund}ellint{\bigund}2], {\it complete elliptic integral of the second kind}
-\vspace{2ex}
-
-\highlight{constexpr} double comp\_ellint\_2(double k);
-	
-\highlight{constexpr} float comp\_ellint\_2f(float k);
-	
-\highlight{constexpr} long double comp\_ellint\_2l(long double k);
-
-\vspace{2ex}
-// [sf.cmath.comp{\bigund}ellint{\bigund}3], {\it complete elliptic integral of the third kind}
-\vspace{2ex}
-
-\highlight{constexpr} double comp\_ellint\_3(double k, double nu);
-	
-\highlight{constexpr} float comp\_ellint\_3f(float k, float nu);
-	
-\highlight{constexpr} long double comp\_ellint\_3l(long double k, long double nu);
-
-\vspace{2ex}
-// [sf.cmath.cyl{\bigund}bessel{\bigund}i, {\it regular modified cylindrical Bessel functions}
-\vspace{2ex}
-
-\highlight{constexpr} double cyl\_bessel\_1(double nu, double k);
-	
-\highlight{constexpr} float cyl\_bessel\_1f(float nu, float k);
-	
-\highlight{constexpr} long cyl\_bessel\_1l(long double nu, long double k);
-
-\vspace{2ex}
-// [sf.cmath.cyl{\bigund}bessel{\bigund}j], {\it cylindrical Bessel functions of the first kind}
-\vspace{2ex}
-
-\highlight{constexpr} double cyl\_bessel\_j(double nu, double k);
-	
-\highlight{constexpr} float cyl\_bessel\_jf(float nu, float k);
-	
-\highlight{constexpr} long cyl\_bessel\_jl(long double nu, long double k);
-
-\vspace{2ex}
-// [sf.cmath.cyl{\bigund}bessel{\bigund}k], {\it irregular modified cylindrical Bessel functions}
-\vspace{2ex}
-
-\highlight{constexpr} double cyl\_bessel\_k(double nu, double k);
-	
-\highlight{constexpr} float cyl\_bessel\_kf(float nu, float k);
-	
-\highlight{constexpr} long cyl\_bessel\_kl(long double nu, long double k);
-
-\vspace{2ex}
-// [sf.cmath.cyl{\bigund}neumann], {\it Cylindrical Neumann functions}
-\vspace{2ex}
-
-\highlight{constexpr} double cyl\_neumann(double nu, double x);
-	
-\highlight{constexpr} float cyl\_neumannf(float nu, float x);
-	
-\highlight{constexpr} long cyl\_neumannl(long double nu, long double x);
-
-\vspace{2ex}
-// [sf.cmath.ellint{\bigund}1], {\it incomplete elliptic integral of the first kind}
-\vspace{2ex}
-
-\highlight{constexpr} double ellint\_1(double k, double phi);
-	
-\highlight{constexpr} float ellint\_1f(float k, float phi);
-	
-\highlight{constexpr} long double ellint\_1l(long double k, long double phi);
-
-\vspace{2ex}
-// [sf.cmath.ellint{\bigund}2], {\it incomplete elliptic integral of the second kind}
-\vspace{2ex}
-
-\highlight{constexpr} double ellint\_2(double k, double phi);
-	
-\highlight{constexpr} float ellint\_2f(float k, float phi);
-	
-\highlight{constexpr} long double ellint\_2l(long double k, long double phi);
-
-\vspace{2ex}
-// [sf.cmath.ellint{\bigund}3], {\it incomplete elliptic integral of the third kind}
-\vspace{2ex}
-
-\highlight{constexpr} double ellint\_3(double k, double nu, double phi);
-	
-\highlight{constexpr} float ellint\_3f(float k, float nu, float phi);
-	
-\highlight{constexpr} long double ellint\_3l(long double k, long double nu, long double phi);
-
-\vspace{2ex}
-// [sf.cmath.expint], {\it exponential integral}
-\vspace{2ex}
-
-\highlight{constexpr} double expint(double x);
-	
-\highlight{constexpr} float expintf(float x);
-	
-\highlight{constexpr} long double expintl(long double x);
-
-\vspace{2ex}
-// [sf.cmath.hermite], {\it Hermite Polynomials}
-\vspace{2ex}
-
-\highlight{constexpr} double hermite(unsigned n, double x);
-	
-\highlight{constexpr} float hermitef(unsigned n, float x);
-	
-\highlight{constexpr} long double hermitel(unsigned n, long double x);
-
-\vspace{2ex}
-// [sf.cmath.laguerre], {\it Laguerre Polynomials}
-\vspace{2ex}
-
-\highlight{constexpr} double laguerre(unsigned n, double x);
-	
-\highlight{constexpr} float laguerref(unsigned n, float x);
-	
-\highlight{constexpr} long double laguerrel(unsigned n, long double x);
-
-\vspace{2ex}
-// [sf.cmath.legendre], {\it Legendre Polynomials}
-\vspace{2ex}
-
-\highlight{constexpr} double legendre(unsigned n, double x);
-	
-\highlight{constexpr} float legendref(unsigned n, float x);
-	
-\highlight{constexpr} long double legendrel(unsigned n, long double x);
-
-\vspace{2ex}
-// [sf.cmath.reimann{\bigund}zeta], {\it Reimann zeta function}
-\vspace{2ex}
-
-\highlight{constexpr} double reimann\_zeta(double x);
-	
-\highlight{constexpr} float reimann\_zetaf(float x);
-	
-\highlight{constexpr} long double reimann\_zetal(long double x);
-
-\vspace{2ex}
-// [sf.cmath.sph{\bigund}bessel], {\it spherical Bessel functions of the first kind}
-\vspace{2ex}
-
-\highlight{constexpr} double sph\_bessel(unsigned n, double x);
-	
-\highlight{constexpr} float sph\_besself(unsigned n, float x);
-	
-\highlight{constexpr} long sph\_bessell(unsigned n, long double x);
-
-\vspace{2ex}
-// [sf.cmath.sph{\bigund}legendre], {\it spherical associated Legendre functions}
-\vspace{2ex}
-
-\highlight{constexpr} double sph\_legendre(unsigned l, unsigned m, double theta);
-	
-\highlight{constexpr} float sph\_legendref(unsigned l, unsigned m, float theta);
-	
-\highlight{constexpr} long sph\_legendrel(unsigned l, unsigned m, long double theta);
-
-\vspace{2ex}
-// [sf.cmath.sph{\bigund}neumann], {\it spherical Neumann functions} \newline
-// {\it spherical Bessel functions of the second kind}
-
-\highlight{constexpr} double sph\_neumann(unsigned n, double x);
-	
-\highlight{constexpr} float sph\_neumann(unsigned n, float x);
-	
-\highlight{constexpr} long sph\_neumann(unsigned n, long double x);
-
 }
+
 
 \subsection{Modifications to ``Three-dimensional hypotenuse''  [c.math.hpot3]}
 
@@ -1441,240 +1227,6 @@ long double nanl(const char* tagp);
 	\highlight{constexpr} double hypot(double x, double y);
 
 	\highlight{constexpr} long double hypot(double x, double y); 
-}
-
-\subsection{Modifications to  ``Associated Laguerre polynomials''  [sf.cmath.assoc{\bigund}laguerre]}
-
-\code{
-	\highlight{constexpr} double assoc\_laguerre(unsigned n, unsigned m, double x);
-	
-	\highlight{constexpr} float assoc\_laguerref(unsigned n, unsigned m, float x);
-	
-	\highlight{constexpr} long double assoc\_laguerrel(unsigned n, unsigned m, long double x);
-
-}
-
-\subsection{Modifications to  ``Associated Legendre functions''  [sf.cmath.assoc{\bigund}legendre]}
-
-\code{
-	\highlight{constexpr} double assoc\_legendre(unsigned n, unsigned m, double x);
-	
-	\highlight{constexpr} float assoc\_legendref(unsigned n, unsigned m, float x);
-	
-	\highlight{constexpr} long double assoc\_legendrel(unsigned n, unsigned m, long double x);
-
-}
-
-\subsection{Modifications to  ``Beta function''  [sf.cmath.beta]}
-
-\code{
-	\highlight{constexpr} double beta(double x, double y);
-	
-	\highlight{constexpr} float beatf(float x, float y);
-	
-	\highlight{constexpr} long double betal(long double x, long double y);
-	
-}
-
-\subsection{Modifications to  ``Complete elliptic integral of the first kind''  [sf.cmath.comp{\bigund}ellint{\bigund}1]}
-
-\code{
-	\highlight{constexpr} double comp\_ellint\_1(double k);
-	
-	\highlight{constexpr} float comp\_ellint\_1f(float k);
-	
-	\highlight{constexpr} long double comp\_ellint\_1l(long double k);
-
-}
-
-\subsection{Modifications to  ``Complete elliptic integral of the second kind''  [sf.cmath.comp{\bigund}ellint{\bigund}2]}
-
-\code{
-	\highlight{constexpr} double comp\_ellint\_2(double k);
-	
-	\highlight{constexpr} float comp\_ellint\_2f(float k);
-	
-	\highlight{constexpr} long double comp\_ellint\_2l(long double k);
-
-}
-
-\subsection{Modifications to  ``Complete elliptic integral of the third kind''  [sf.cmath.comp{\bigund}ellint{\bigund}3]}
-
-\code{
-	\highlight{constexpr} double comp\_ellint\_3(double k, double nu);
-	
-	\highlight{constexpr} float comp\_ellint\_3f(float k, float nu);
-	
-	\highlight{constexpr} long double comp\_ellint\_3l(long double k, long double nu);
-
-}
-
-\subsection{Modifications to  ``Regular modified cylindrical Bessel functions''  [sf.cmath.cyl{\bigund}bessel{\bigund}i]}
-
-\code{
-	\highlight{constexpr} double cyl\_bessel\_1(double nu, double k);
-	
-	\highlight{constexpr} float cyl\_bessel\_1f(float nu, float k);
-	
-	\highlight{constexpr} long cyl\_bessel\_1l(long double nu, long double k);
-
-}
-
-\subsection{Modifications to  ``Cylindrical Bessel functions of the first kind''  [sf.cmath.cyl{\bigund}bessel{\bigund}j]}
-
-\code{
-	\highlight{constexpr} double cyl\_bessel\_j(double nu, double k);
-	
-	\highlight{constexpr} float cyl\_bessel\_jf(float nu, float k);
-	
-	\highlight{constexpr} long cyl\_bessel\_jl(long double nu, long double k);
-
-}
-
-\subsection{Modifications to  ``Irregular modified cylindrical Bessel functions''  [sf.cmath.cyl{\bigund}bessel{\bigund}k]}
-
-\code{
-	\highlight{constexpr} double cyl\_bessel\_k(double nu, double k);
-	
-	\highlight{constexpr} float cyl\_bessel\_kf(float nu, float k);
-	
-	\highlight{constexpr} long cyl\_bessel\_kl(long double nu, long double k);
-
-}
-
-
-\subsection{Modifications to  ``Cylindrical Neumann functions''  [sf.cmath.cyl{\bigund}neumann]}
-
-\code{
-	\highlight{constexpr} double cyl\_neumann(double nu, double x);
-	
-	\highlight{constexpr} float cyl\_neumannf(float nu, float x);
-	
-	\highlight{constexpr} long cyl\_neumannl(long double nu, long double x);
-
-}
-
-\subsection{Modifications to  ``Incomplete elliptic integral of the first kind''  [sf.cmath.ellint{\bigund}1]}
-
-\code{
-	\highlight{constexpr} double ellint\_1(double k, double phi);
-	
-	\highlight{constexpr} float ellint\_1f(float k, float phi);
-	
-	\highlight{constexpr} long double ellint\_1l(long double k, long double phi);
-
-}
-
-\subsection{Modifications to  ``Incomplete elliptic integral of the second kind''  [sf.cmath.ellint{\bigund}2]}
-
-\code{
-	\highlight{constexpr} double ellint\_2(double k, double phi);
-	
-	\highlight{constexpr} float ellint\_2f(float k, float phi);
-	
-	\highlight{constexpr} long double ellint\_2l(long double k, long double phi);
-
-}
-
-\subsection{Modifications to  ``Incomplete elliptic integral of the third kind''  [sf.cmath.ellint{\bigund}3]}
-
-\code{
-	\highlight{constexpr} double ellint\_3(double k, double nu, double phi);
-	
-	\highlight{constexpr} float ellint\_3f(float k, float nu, float phi);
-	
-	\highlight{constexpr} long double ellint\_3l(long double k, long double nu, long double phi);
-
-}
-
-\subsection{Modifications to  ``Exponential integral''  [sf.cmath.expint]}
-
-\code{
-	\highlight{constexpr} double expint(double x);
-	
-	\highlight{constexpr} float expintf(float x);
-	
-	\highlight{constexpr} long double expintl(long double x);
-
-}
-
-\subsection{Modifications to  ``Hermite Polynomials''  [sf.cmath.hermite]}
-
-\code{
-	\highlight{constexpr} double hermite(unsigned n, double x);
-	
-	\highlight{constexpr} float hermitef(unsigned n, float x);
-	
-	\highlight{constexpr} long double hermitel(unsigned n, long double x);
-
-}
-
-\subsection{Modifications to  ``Laguerre Polynomials''  [sf.cmath.laguerre]}
-
-\code{
-	\highlight{constexpr} double laguerre(unsigned n, double x);
-	
-	\highlight{constexpr} float laguerref(unsigned n, float x);
-	
-	\highlight{constexpr} long double laguerrel(unsigned n, long double x);
-
-}
-
-\subsection{Modifications to  ``Legendre Polynomials''  [sf.cmath.legendre]}
-
-\code{
-	\highlight{constexpr} double legendre(unsigned n, double x);
-	
-	\highlight{constexpr} float legendref(unsigned n, float x);
-	
-	\highlight{constexpr} long double legendrel(unsigned n, long double x);
-
-}
-
-
-\subsection{Modifications to  ``Reimann zeta function''  [sf.cmath.reimann{\bigund}zeta]}
-
-\code{
-	\highlight{constexpr} double reimann\_zeta(double x);
-	
-	\highlight{constexpr} float reimann\_zetaf(float x);
-	
-	\highlight{constexpr} long double reimann\_zetal(long double x);
-
-}
-
-\subsection{Modifications to  ``Spherical Bessel functions of the first kind''  [sf.cmath.sph{\bigund}bessel]}
-
-\code{
-	\highlight{constexpr} double sph\_bessel(unsigned n, double x);
-	
-	\highlight{constexpr} float sph\_besself(unsigned n, float x);
-	
-	\highlight{constexpr} long sph\_bessell(unsigned n, long double x);
-
-}
-
-
-\subsection{Modifications to  ``Spherical associated Legendre functions''  [sf.cmath.sph{\bigund}legendre]}
-
-\code{
-	\highlight{constexpr} double sph\_legendre(unsigned l, unsigned m, double theta);
-	
-	\highlight{constexpr} float sph\_legendref(unsigned l, unsigned m, float theta);
-	
-	\highlight{constexpr} long sph\_legendrel(unsigned l, unsigned m, long double theta);
-
-}
-
-\subsection{Modifications to  ``Spherical Neumann functions''  [sf.cmath.sph{\bigund}neumann]}
-
-\code{
-	\highlight{constexpr} double sph\_neumann(unsigned n, double x);
-	
-	\highlight{constexpr} float sph\_neumann(unsigned n, float x);
-	
-	\highlight{constexpr} long sph\_neumann(unsigned n, long double x);
-
 }
 
 \end{document}
