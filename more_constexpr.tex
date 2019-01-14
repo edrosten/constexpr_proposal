@@ -107,20 +107,20 @@ implementation could use one of several different C standard libraries. If so,
 constraining translation time behaviour so that it is consistent with the runtime behaviour
 could be difficult, quite apart from the issue of the runtime rounding mode.
 
-Since such consistency is not a requirement, some compilers already 
-make assumptions about how the C library behaves generating code which is
-independent of the runtime C library.
+Since such consistency is not a requirement, some compilers generate code which may be
+independent of the particular runtime C library in use.
+{\bf But couldn't it be argued that by making the generated code independent of the runtime library, the compiler is guaranteeing consistency?! Or is it basically saying that consistency between optimized / unoptimized code is lost?}
 For example, consider the following code
-snippet:
+snippet, kindly brought to our attention by Richard Smith:
 
 \begin{Verbatim}
 #include <cmath>
 double f() { return std::sin(1e100); }
 \end{Verbatim}
 
-For such code, almost any value is reasonable and so it would not be expected to
-be consistent across library implementations.  On clang (targeting
-x64), the following code is emitted, demonstrating that the result is generated
+For such code, any value in the range [-1, 1] could be considered reasonable and so it would not be expected to be consistent across library implementations.  Nevertheless,
+on clang (targeting
+x64), the following code is emitted, demonstrating that the result is in actual fact generated
 by the compiler, independent of the C library:
 \begin{Verbatim}
 .LCPI0_0:
@@ -129,7 +129,9 @@ _Z1fv:
 	movsd	.LCPI0_0(%rip), %xmm0
 	retq
 \end{Verbatim}
-and on GCC, equivalent code is generated.
+On GCC, equivalent code is generated.
+
+%This stark example of where translation time and runtime behaviour could be very different is also rather artificial. As such, and given that it is already existing practice for functions such as \code{std::sin} to be evaluated at compile time, we make the argument in this paper 
 
 While it is desirable to have consistent behaviour between runtime and
 translation time, the fact that many floating point operations are subject to the
