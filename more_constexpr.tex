@@ -107,9 +107,9 @@ implementation could use one of several different C standard libraries. If so,
 constraining translation time behaviour so that it is consistent with the runtime behaviour
 could be difficult, quite apart from the issue of the runtime rounding mode.
 
-Since such consistency is not a requirement, some compilers already assume knowledge of
-the C standard library.  {\bf ]I don't understand this! For what purpose is this knowledge being assumed and how does it relate to the conclusion below that the result is independent of the C library?]}
-
+Since such consistency is not a requirement, some compilers already 
+make assumptions about how the C library behaves generating code which is
+independent of the runtime C library.
 For example, consider the following code
 snippet:
 
@@ -119,7 +119,7 @@ double f() { return std::sin(1e100); }
 \end{Verbatim}
 
 For such code, almost any value is reasonable and so it would not be expected to
-be consistent across library implementations.  However {\bf [This 'however' sort of implies that we're about to reveal that it is consistent across library implementations; probably needs slight rewording]}, on clang (targeting
+be consistent across library implementations.  On clang (targeting
 x64), the following code is emitted, demonstrating that the result is generated
 by the compiler, independent of the C library:
 \begin{Verbatim}
@@ -129,7 +129,7 @@ _Z1fv:
 	movsd	.LCPI0_0(%rip), %xmm0
 	retq
 \end{Verbatim}
-and on GCC, similar code is generated. {\bf [But presumably giving a different value?]}
+and on GCC, equivalent code is generated.
 
 While it is desirable to have consistent behaviour between runtime and
 translation time, the fact that many floating point operations are subject to the
