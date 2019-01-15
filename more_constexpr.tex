@@ -99,48 +99,10 @@ are constexpr, on the other it is more conservative since functions such as \cod
 
 Though clang does not have \constexpr implementations, it does perform compile time evaluation of many mathematical functions (but not the special functions) during optimisation. The existence of compile time evaluation in GCC and clang demonstrates that implementation of this proposal is feasible.
 
-\subsection{Interaction with the C standard library}
-
-In [library.c] it is noted that \cmath\ makes available the facilities of
-the C standard library. One interpretation of this is that the C++
-implementation could use one of several different C standard libraries. If so, 
-constraining translation time behaviour so that it is consistent with the runtime behaviour
-could be difficult, quite apart from the issue of the runtime rounding mode.
-
-Since such consistency is not a requirement, some compilers generate code which may be
-independent of the particular runtime C library in use.
-{\bf But couldn't it be argued that by making the generated code independent of the runtime library, the compiler is guaranteeing consistency?! Or is it basically saying that consistency between optimized / unoptimized code is lost?}
-For example, consider the following code
-snippet, kindly brought to our attention by Richard Smith:
-
-\begin{Verbatim}
-#include <cmath>
-double f() { return std::sin(1e100); }
-\end{Verbatim}
-
-For such code, any value in the range [-1, 1] could be considered reasonable and so it would not be expected to be consistent across library implementations.  Nevertheless,
-on clang (targeting
-x64), the following code is emitted, demonstrating that the result is in actual fact generated
-by the compiler, independent of the C library:
-\begin{Verbatim}
-.LCPI0_0:
-	.quad	-4622843457162800295 
-_Z1fv:
-	movsd	.LCPI0_0(%rip), %xmm0
-	retq
-\end{Verbatim}
-On GCC, equivalent code is generated.
-
-%This stark example of where translation time and runtime behaviour could be very different is also rather artificial. As such, and given that it is already existing practice for functions such as \code{std::sin} to be evaluated at compile time, we make the argument in this paper 
-
-While it is desirable to have consistent behaviour between runtime and
-translation time, the fact that many floating point operations are subject to the
-runtime rounding mode means that this is generally not possible.
-
 
 \section{Design Decisions}
 
-The parent paper~\cite{Rosten-constexpr} identifies two crucial issues that must be understood when rolling out \constexpr\ in \cmath: namely error flags and the rounding mode. It is, however, well worth emphasising that these issues must have been confronted when allowing \Operators\ to be used in \constexpr\ contexts. Therefore, it would be most disconcerting if this were to provide a barrier to rolling out \constexpr\ in \cmath; nevertheless, both error flags and rounding mode are worthy of a proper discussion, which interested readers may find in~\cite{Rosten-constexpr}. What follows is a summary of the key points.
+The parent paper~\cite{Rosten-constexpr} identifies two crucial issues that must be understood when rolling out \constexpr\ in \cmath: namely error flags and the rounding mode. It is, however, well worth emphasising that these issues must have been confronted when allowing \Operators\ to be used in \constexpr\ contexts. Therefore, it would be most disconcerting if this were to provide a barrier to rolling out \constexpr\ in \cmath; nevertheless, both error flags and rounding mode are worthy of a proper discussion, which interested readers may find in~\cite{Rosten-constexpr}. The next two subsections summarise the key points, after which we discuss the subtle issue of the interaction with the C runtime library. Finally, the key proposal of this paper is given.
 
 \subsection{Global Flags}
 
@@ -166,6 +128,44 @@ To facilitate discussion, \cite{Rosten-constexpr} defines two types of rounding-
 As an artefact of the limited precision of floating-point arithmetic, the answer depends on the rounding mode. However, this does not stop us from making definitions such as~\eq{10/3}. Therefore, functions  within \cmath\ that exhibit such weak dependence are not ruled out from being declared \constexpr.
 
 This should be contrasted with strong dependence, which may be effectively illustrated by considering \code{float nearbyint(float x)}. The whole point of this function is to round depending on the runtime rounding mode, which may in principle be changed throughout a program's execution. It was therefore decided in~\cite{Rosten-constexpr} to exclude functions with strong dependence from being declared \constexpr\ and this paper does not overturn that.
+
+\subsection{Interaction with the C standard Library}
+
+For a mathematical function which may be evaluated at translation time, it is desirable for there to be
+consistency with the values computed at runtime. However, the fact that the rounding mode
+may be changed at runtime indicates that this is not, in general, possible. Nevertheless, for
+weak rounding mode dependence the behaviour of \Operators\ indicates that this is acceptable.
+
+ However, for more complicated mathematical functions there is an additional subtlety due
+to the interaction with the C standard library. In [library.c] it is noted that \cmath\ makes available the facilities of the C standard library. One interpretation of this is that the C++
+implementation could use one of several different C standard libraries. If so, 
+constraining translation time behaviour so that it is consistent with the runtime behaviour
+could be difficult, quite apart from the issue of the runtime rounding mode.
+
+This is sharpened by the following code snippet, kindly brought to our attention by Richard Smith:
+
+\begin{Verbatim}
+#include <cmath>
+double f() { return std::sin(1e100); }
+\end{Verbatim}
+For such code, any value in the range [-1, 1] could be considered reasonable and so it would not be expected to be consistent across library implementations. If it were possible to mark this function \constexpr, then strong differences between runtime could emerge. 
+
+However, this is effectively already happening. it turns out that on clang (targeting x64), the following code is emitted:
+\begin{Verbatim}
+.LCPI0_0:
+	.quad	-4622843457162800295 
+_Z1fv:
+	movsd	.LCPI0_0(%rip), %xmm0
+	retq
+\end{Verbatim}
+with equivalent code generated by GCC.
+
+This demonstrates that both compilers are already generating the results at translation time and, therefore, independently of the C library. For this particular example, it appears that current practise does indeed achieve consistency between translation time and runtime, though effectively by ignoring the latter!
+
+The story does not end here. For more complicated examples and/or removing optimization, it may be that a call to the C library is made, after all. This implies that the value of, say, \code{std::sin(1e100)} evaluated in one part of a code base may be very different from the (translation time) value evaluated elsewhere. Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly allow this. The example we are using, while instructive, is somewhat artificial: it exploits the fact that the floating-point approximation to periodic function ceases to make much sense outside a certain domain.
+
+
+A conservative option for this proposal would be to simply remove the trigonometric functions from the list to which we apply \constexpr. We prefer not to do this but do acknowledge it as a possibility. On the one hand, allowing \constexpr\ trigonometric functions is consistent with the existing behaviour of at least two major compilers (we have not checked beyond these). On the other, we think that preventing this on the basis of edge cases which amount to something of an abuse of floating-point would be the tail wagging the dog.
 
 \subsection{Conditions for \constexpr}
 
