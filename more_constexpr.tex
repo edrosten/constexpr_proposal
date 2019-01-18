@@ -148,9 +148,9 @@ This is sharpened by the following code snippet, kindly brought to our attention
 #include <cmath>
 double f() { return std::sin(1e100); }
 \end{Verbatim}
-For such code, any value in the range [-1, 1] could be considered reasonable and so it would not be expected to be consistent across library implementations. If it were possible to mark this function \constexpr, then strong differences between runtime could emerge. 
+For such code, any value in the range [-1, 1] could be considered reasonable and so it would not be expected to be consistent across library implementations. If it were possible to mark this function \constexpr, then strong differences between translation time and runtime could emerge. 
 
-However, this is effectively already happening. it turns out that on clang (targeting x64), the following code is emitted:
+However, this is effectively already happening. It turns out that on clang (targeting x64), the following code is emitted:
 \begin{Verbatim}
 .LCPI0_0:
 	.quad	-4622843457162800295 
@@ -188,6 +188,10 @@ The conclusion of~\cite{Rosten-constexpr} was that two conditions may be used to
 \section{Impact On the Standard}
 
 This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath, together with a smattering in \complex. It may be possible to do this as a pure library extension if use is made of~\cite{ConstEval} but even without this it is hoped for the burden on compiler vendors to be minimal.
+
+\section{Future Directions}
+
+Ultimately it would be desirable to extend \constexpr\ to some, if not all, of the special functions.
 
 
 \begin{acknowledgments}
@@ -777,7 +781,7 @@ namespace std\{
 
 %% sqrt %%
 
-\highlight{constexpr} float sqrt(float x,; \stdcomment{library.c}
+\highlight{constexpr} float sqrt(float x); \stdcomment{library.c}
 
 \highlight{constexpr} double sqrt(double x);
 
