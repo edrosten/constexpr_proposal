@@ -20,7 +20,8 @@
 \newcommand{\FLTRADIX}{{\tt FLT\_RADIX}}
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
-\newcommand{\highlight}[1]{{\color{red} #1}}
+\newcommand{\highlight}[1]{{\color{green} #1}}
+\newcommand{\remove}[1]{{\color{red} #1}}
 \newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
@@ -464,9 +465,9 @@ The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 \subsection{Modification to ``Constant expressions'' [expr.const]}
 
 
-{\small (4.21)} --- a \emph{throw-expression} [expr.throw] or a dynamic cast [expr.dynamic.cast] or \code{typeid} [expr.typeid] expression that would throw an exception; \highlight{\st{or}}
+{\small (4.21)} --- a \emph{throw-expression} [expr.throw] or a dynamic cast [expr.dynamic.cast] or \code{typeid} [expr.typeid] expression that would throw an exception; \remove{\st{or}}
 
-{\small (4.22)} --- an invocation of the \code{va\_arg} macro [cstdarg.syn]\highlight{\st{.};or}
+{\small (4.22)} --- an invocation of the \code{va\_arg} macro [cstdarg.syn]\remove{\st{.}}\highlight{;or}
 
 \highlight{{{\small (4.23)}} --- an invocation of a mathematical function in the standard library that encounters a domain error or overflow.}
 
