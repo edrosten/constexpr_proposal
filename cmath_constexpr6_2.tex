@@ -1,0 +1,1132 @@
+\documentclass[prd,twocolumn,amsmath,amssymb,nofootinbib,eqsecnum]{revtex4-1}
+\usepackage{xspace} %Dude this will blow your mind!
+\usepackage{amsthm}
+%\usepackage{color}
+\usepackage{xcolor}
+\usepackage{soul}
+\usepackage{fancyvrb}
+
+\newcommand{\constexpr}{\code{constexpr}\xspace}
+\newcommand{\code}[1]{{\tt #1}}
+\newcommand{\header}[1]{{\tt <#1>}}
+\newcommand{\cmath}{\header{cmath}}
+\newcommand{\cstdlib}{\header{cstdlib}}
+
+\newcommand{\FEINVALID}{{\tt FE\_INVALID}}
+\newcommand{\FEDIVBYZERO}{{\tt FE\_DIVBYZERO}}
+\newcommand{\FEINEXACT}{{\tt FE\_INEXACT}}
+\newcommand{\FEUNDERFLOW}{{\tt FE\_UNDERFLOW}}
+\newcommand{\FEOVERFLOW}{{\tt FE\_OVERFLOW}}
+\newcommand{\FLTRADIX}{{\tt FLT\_RADIX}}
+\newcommand{\Operators}{\ensuremath{+,-,\times,/}}
+
+\newcommand{\highlight}[1]{\colorbox{green}{\!\!\!\! #1}}
+\newcommand{\remove}[1]{\colorbox{red}{#1}}
+\newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
+
+\newcommand{\eq}[1]{(\ref{eq:#1})}
+
+\newtheorem*{proposal*}{Proposal}
+
+\makeatletter
+\def\l@subsection#1#2{}
+\def\l@subsubsection#1#2{}
+\makeatother
+
+\def\bibsection{\section*{\refname}} 
+
+\begin{document}
+
+
+\title{\constexpr for \cmath\ and \cstdlib}
+%\author{Edward J.~Rosten \& Oliver J.~Rosten}
+%\date{\today}
+
+\author{
+\hspace{11.5em}
+\begin{tabular}{ll}
+	Document: & D0533R6
+\\
+	Date: & \today
+\\
+	Project: & Programming Language C++, Library Working Group
+\\
+	Audience: & LWG \& CWG
+\\
+	Reply to: & Edward J.\ Rosten {(\tt erosten@snap.com)}
+ / Oliver J.\ Rosten {(\tt oliver.rosten@gmail.com)}
+\end{tabular}
+}
+
+\begin{abstract}
+
+\begin{center} {\bf Abstract} \end{center}
+We propose simple criteria for selecting functions in \cmath\ which should be
+declared \constexpr. There is a small degree of overlap with \cstdlib.
+ The aim is to transparently select a sufficiently large portion of \cmath\ 
+in order to be useful but without placing too much burden on compiler vendors.
+	
+\end{abstract}
+
+
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+
+This paper seeks to rectify the current absence of \constexpr in
+\cmath\ (and also in \cstdlib), so as to broaden the range of numeric computations that can be
+performed using standard library facilities. While in principle almost every function
+in \cmath\ could be declared \constexpr, we strike a balance between coverage and onus on compiler/library vendors.
+
+
+\section{Motivation \& Scope}
+
+The introduction of \constexpr has facilitated intuitive compile-time
+programming. However, not a single function in \cmath\ is currently declared \constexpr,
+thereby artificially restricting what can be done at compile-time within the standard library.
+Nevertheless, from casual inspection of \cmath, it may
+not be immediately obvious precisely which functions should be declared
+\constexpr. In this paper, we seek an organizing principle which selects functions
+which are in a sense no more complicated than the elementary arithmetic operations
+(\Operators). This is justified since the latter already support \constexpr.
+
+Indeed, two subtleties can be resolved by appealing to the fact that they must be dealt with in implementing \constexpr for the arithmetic operators. In particular, various functions in \cmath\ may set global flags and/or depend on the rounding mode. These issues are discussed in the next two subsections. Following this, a justification is given for declaring functions in \cmath\ which modify an argument with external visibility to be \constexpr. These considerations lead to a concrete statement of the conditions under which a function should be declared \constexpr.
+
+\subsection{Global Flags}
+\label{sec:global}
+
+Under certain conditions, various functions in \cmath\ may set global flags.
+Specifically, \code{errno} may be set and/or the various floating-point
+exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
+\FEINEXACT\ may be raised. 
+
+For example, \code{std::round(double x)}, which rounds its argument to the nearest integer value, raises \FEINVALID\ in the case that its argument is NaN or $\pm \infty$. This may seem problematic if one wishes to declare \code{std::round(double x)} to be \constexpr. 
+However, the issue of raising exception flags in a \constexpr context is nothing new: it is already faced by
+the standard arithmetic operators. Nevertheless, the latter are available for use in constant
+expressions. The proposed strategy is to mimic the behaviour of the arithmetic
+operators.
+
+To be precise, functions declared \constexpr, \emph{when used in a \constexpr
+context}, should give a compiler error if division by zero, domain errors or
+overflows occur. When not used in a \constexpr context, the various global
+flags should be set as normal. This distinction between these two contexts previously 
+implied that any implementation cannot be done as a pure library extension. However, the emergence of \code{std::is\_constant\_evaluated()} may allow for this be circumvented.
+Either way, below
+we will introduce a criterion which restricts the proposed set of \constexpr\ functions 
+to those which are, in a sense, simple. Consequently, while there will be some burden 
+on compiler vendors it should be minimal. 
+
+\subsection{Rounding Mode}
+\label{sec:rounding}
+
+Some of the functions in \cmath\ depend on the rounding mode, which is something which may be changed at runtime. To facilitate the discussion, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
+
+Weak dependence is that already experienced by the arithmetic operators. For example, consider 10.0/3.0: the result depends on the rounding mode. We refer to this rounding mode dependence as weak since it is an artefact of the limited precision of floating-point numbers. However, it is perfectly legitimate to declare
+\begin{equation}
+	\mbox{\code{constexpr double x\{10.0/3.0\}}}.
+\label{eq:10/3}
+\end{equation}
+Therefore, when deciding which functions in \cmath\ should be \constexpr, we will not rule out functions with weak rounding mode dependence.
+As for~\eq{10/3}, what result should we expect? According to [cfenv.syn] footnote 1, the result is implementation defined. However, this issue is currently under active discussion. 
+
+The key point for this paper is that, whatever decision is made, the approach can be consistently applied to those functions in \cmath\ which we propose should be declared \constexpr. It is worth noting that the number of functions in this proposal which are dependent on the rounding mode is rather small (see \ref{sec:dd}).
+
+Having dealt with weak rounding mode dependence, now consider \code{float nearbyint(float x)}. This function rounds its argument to the nearest integer \emph{taking account of the current rounding mode}. Thus, a change to the rounding mode can change the answer by unity. This dependence on the rounding mode is not an artefact of limited precision and hence we call it strong.
+
+In this proposal, we chose to exclude functions with strong rounding mode dependence from being declared \constexpr. This respects the fact that these functions are explicitly designed to depend on the runtime environment.
+
+\subsection{Arguments with External Visibility}
+\label{sec:external}
+
+At first sight, it may appear pointless to declare functions like
+\[
+	\mbox{\code{float frexp(float value, int* exp)}}
+\]
+to be \constexpr since such functions modify arguments with external visibility.
+However, declaring functions of this type \constexpr means that they can be used
+in \constexpr contexts. In other words this would allow functions such as
+\begin{Verbatim}
+constexpr int foo(float x) {
+  int a{}; int* pa{&a};
+  std::frexpr(x, pa);
+  return a;
+}
+\end{Verbatim}	
+to be used to do things like
+\[
+	\mbox{\code{constexpr int i\{foo(0.5f)\}}}.
+\]
+
+
+\subsection{Conditions for \constexpr}
+
+Taking into account the above consideration, we propose the following in order to put
+the application of \constexpr on a rigorous footing:
+\begin{proposal*}
+	A function in \cmath\ shall be declared \constexpr if and only if:
+	\begin{enumerate}
+		\item When taken to act on the set of rational numbers, the function is closed (excluding division 
+		by zero);
+		
+		\item The function is not strongly dependent on the rounding mode.
+	\end{enumerate}
+\end{proposal*}
+
+By means of a brief illustration, $\code{abs}$ satisfies all three criteria; however, functions such as 
+\code{exp}, \code{sqrt}, \code{cos}, \code{sin} fall foul of the first criterion and so are excluded as 
+\constexpr candidates. Finally, as discussed above, \code{nearbyint} fails the second criterion.
+
+
+\section{State of the Art}
+
+Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
+Indeed, GCC 5.3.0 declares all functions, besides the special functions, those taking a pointer argument
+(cf.~\ref{sec:external}) and those with an explicit dependence on the runtime rounding mode (\ref{sec:rounding}) as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose).
+While clang does not go nearly as far as GCC, it does offer some functions as 
+builtins and is able to use them to perform compile time computations, constant
+propagation and so on. It is therefore hoped that any burden on compiler vendors implicit in this
+proposal is minimal.
+
+\section{Impact On the Standard}
+\label{sec:impact}
+
+This proposal adds an extra statement to [library.c], referring back to [expr.const], indicating that if a (mathematical) function encounters a domain error or overflow, then it may not form part of a constant expression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$, \cite{ConstEval} it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case.
+
+[library.c] is amended to explicitly indicate that, compared to the underlying C signatures, the C++ counterparts may be declared \constexpr. A new feature-test macro is added to [support.limits.general].
+
+The remaining changes amount to scattering \constexpr\ throughout the existing headers \cmath\ and \header{cstdlib}, according to the rules specified earlier. 
+
+In this proposal, we have chosen for the standard to remain silent on the issue of the interaction of rounding mode dependence with constant expressions. On the one hand, this is no worse than the current situation regarding the arithmetic operators. On the other, the active discussion about how to optimally resolve this matter suggests to us that the issue is better served by a separate proposal.
+
+\section{Design Decisions}
+\label{sec:dd}
+
+There are several obvious candidates in \header{cmath} to which \constexpr should be applied, such as \code{abs}, \code{floor}, \code{ceil}.  But, beyond these, it is desirable to
+apply \constexpr throughout \cmath\ in a consistent manner. Ideally, one would like to achieve this via the application of one or more criteria rooted in mathematics. On the one hand, any such approach must
+select the
+basic arithmetic operations, $(+,-,\times,/)$, since these may already be used in a 
+\constexpr\ context. On the other,  it should ideally encompass prior work on \code{complex}, since it has already been proposed that, in addition to the arithmetic operations, \code{complex::norm} and a few other functions be declared \constexpr~\cite{AP-complex}. 
+
+Mathematically, a field is closed under the elementary operations of addition
+and multiplication.
+Numeric types do not form a field; however, since the basic arithmetic
+operations are already declared \constexpr, this suggests that it may be
+possible to utilize a field which captures enough of the properties of numeric
+types in order to be useful in formulating criteria for the application of
+\constexpr. The set of rational numbers is the natural candidate since all valid
+values of numeric types are elements of this set and, moreover, the rationals close over
+$(+,-,\times,/)$ (with zero excluded for division).
+
+The subtlety of global flags being set upon encountering floating-point
+exceptions presents a challenge. If all functions which can set such flags are
+excluded from the list to tag \constexpr, then the remaining list is rather
+sparse. To achieve something more useful suggests expanding the set to include
+those functions which are `simple enough'. These considerations lead to the
+first condition of the proposal.
+Tables~\ref{tab:26.9.1}--\ref{tab:26.9.4} contain the functions in \cmath\
+satisfying this criterion and indicate whether or not they pass the second criterion as well. 
+
+To reduce space, the following convention is observed. The
+functions listed in [c.math] are divided into blocks of closely related
+functions such as those shown in table~\ref{tab:example}. 
+\begin{table}[h]
+	\begin{tabular}{l}
+		\code{int ilogb(float arg)}
+	\\
+		\code{int ilogb(double arg)}
+	\\
+		\code{int ilogb(long double arg)}
+	\\
+		\code{int ilogbf(float arg)}
+	\\
+		\code{int ilogbl(long double arg)}
+	\end{tabular}
+\caption{Example of a family of functions which appear as a block in the standard.}
+\label{tab:example}
+\end{table}
+Note that while the first three functions are overloads, the fourth and fifth
+have differing names.  When classifying those functions which satisfy the first
+criterion, we will present just the first function in each such block, with the
+understanding that the others are similar in this regard. Furthermore, 
+we supply various comments in the
+third column of the tables, observing the following shorthands:
+\begin{enumerate}
+	\item G: May set global variable;
+	
+	\item S: Depends strongly on rounding mode;
+	
+	\item W: Depends weakly on the rounding mode;
+	
+	\item w: Depends weakly on the rounding mode only if \FLTRADIX\ is not 2;
+	
+	\item U: Depends weakly on the rounding mode only in the case of underflow.
+\end{enumerate}
+If more than one of these applies, then this is indicated using $\vert$; for example, if a function may set a global variable and also depends strongly on the rounding mode, this would be indicated by G$\vert$S. Finally, implementation dependence is denoted by a $\star$ so that, for example, G$\star$ means that whether or not a global variable may be set depends on the implementation.
+\begin{table}[h]
+	\begin{tabular}{lcc}
+		Function & Pass & Comment
+	\\
+	\hline \hline
+		\code{float frexp(float value, int* exp)} & Yes & w
+	\\
+	\hline
+		\code{int ilogb(float arg)} & Yes & G
+	\\
+	\hline
+		\code{float ldexp(float x, int exp)} & Yes & G$\vert$w		
+	\\
+	\hline
+		\code{float logb(float arg)} & Yes & G
+	\\
+	\hline
+		\code{float modf(float value, float* iptr)} & Yes &
+	\\
+	\hline
+		\code {float scalbn(float x, int n)} & Yes & G$\vert$U
+	\\
+	\hline
+		\code {float scalbln(float x, long int n)} & Yes & G$\vert$U
+	\end{tabular}
+\caption{Various functions declared in [cmath.syn] which close on the rationals.}
+\label{tab:26.9.1}
+\end{table}
+
+
+\begin{table}[h]
+	\begin{tabular}{lc}
+		Function & Pass
+	\\
+	\hline \hline
+		\code{int abs(int j)} & Yes
+	\\
+	\hline
+		\code{float fabs(float x)} & Yes
+	\end{tabular}
+\caption{Absolute values declared in [cmath.syn]  which close on the rationals.}
+\label{tab:26.9.2}
+\end{table}
+
+\begin{table}[b]
+	\begin{tabular}{lcc}
+		Function & Pass & Comment
+	\\
+	\hline \hline
+		\code{float ceil(float x)} &  Yes & G$\star$
+	\\
+	\hline
+		\code{float floor(float x)} & Yes & G$\star$
+	\\
+	\hline
+		\code{float nearbyint(float x)} & No & S
+	\\
+	\hline
+		\code{float rint(float x)} & No & G$\vert$S
+	\\
+	\hline
+		\code{long int lrint(float x)} &  No & G$\vert$S
+	\\
+	\hline
+		\code{long long int llrint(float x)} & No & G$\vert$S
+	\\
+	\hline
+		\code{float round(float x)} & Yes & G
+	\\
+	\hline
+		\code{float lround(float x)} & Yes & G
+	\\
+	\hline
+		\code{float llround(float x)} & Yes & G
+	\\
+	\hline
+		\code{float trunc(float x)} &  Yes & G
+	\\
+	\hline
+		\code{float fmod(float x, float y)} & Yes & G$\vert$W
+	\\
+	\hline
+		\code{float remainder(float x, float y)} & Yes & G$\vert$W$\star$
+	\\
+	\hline
+		\code{float remquo(float x, float y, int* quo)} & Yes & G$\vert$W$\star$
+	\\
+	\hline
+		\code{float copysign(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{float nextafter(float x, float y)} & Yes & G
+	\\
+	\hline
+		\code{float nexttoward(float x, long double y)} & Yes & G
+	\\
+	\hline
+		\code{float fdim(float x, float y)} & Yes & G$\vert$U
+	\\
+	\hline
+		\code{float fmax(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{float fmin(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{float fma(float x, float y, float z)} & Yes & G$\vert$W
+	\end{tabular}
+\caption{Additional functions declared in [cmath.syn]  which close on the rationals.}
+\label{tab:26.9.3}
+\end{table}
+
+\begin{table}
+	\begin{tabular}{lcc}
+		Function & Pass & Comment
+	\\
+	\hline \hline
+		\code{int fpclassify(float x);} & Yes &
+	\\
+	\hline
+		\code{int isfinite(float x)} & Yes &
+	\\
+	\hline
+		\code{int isinf(float x)} & Yes & $\dagger$
+	\\
+	\hline
+		\code{int isnan(float x)} & Yes & $\dagger$ 
+	\\
+	\hline
+		\code{int isnormal(float x)} & Yes &
+	\\
+	\hline
+		\code{int signbit(float x)} & Yes &
+	\\
+	\hline
+		\code{int isgreater(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int isgreaterequal(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int isless(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int islessequal(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int islessgreater(float x, float y)} & Yes &
+	\\
+	\hline
+		\code{int isunordered(float x, float y)} & Yes &
+	\end{tabular}
+\caption{Comparison operators belonging to [cmath.syn] which close on the rationals. $\dagger$ --- no utility being declared \constexpr in of itself, but should be tagged \constexpr so that it can be incorporated into \constexpr functions since the latter may be called in  non-\constexpr contexts.}
+\label{tab:26.9.4}
+\end{table}
+
+\section{Future Directions}
+
+Ultimately, it is desirable to follows GCC's lead and to declare almost all functions in \cmath\ as \constexpr. This will amount to removing the first criterion of our proposal which, particularly once the issue of the interaction of rounding mode with \constexpr\ has been fully resolved, should hopefully be relatively uncontroversial.
+
+\section{Revision History}
+
+\begin{enumerate}
+	\item[R1] Includes discussion of rounding mode and future directions. 
+	
+	\item[R2] More stable tags utilized.
+	
+	\item[R3] Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. Proposed a modification to [library.c].
+	
+	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension---see the final paragraph of~\ref{sec:global} and the first of \ref{sec:impact}. Clarifications to the `state of the art'.
+	
+	\item [R5] Highlighting of proposed changes improved plus minor tweaks to ensure consistency with the latest draft of the standard.
+	
+	\item [R6] Transfer proposed wording from [expr.const] to [library.c]; propose the addition of a feature-test macro; further improvements to highlighting; Update the location of the feature-test macro to [version.syn].
+\end{enumerate}
+
+\begin{acknowledgments}
+	We would like to thank Daniel Kr\"ugler, Antony Polukhin and especially Walter E.~Brown 
+	for encouragement and advice. Sincere thanks also to Richard Smith for help with standardese
+	and Jens Maurer and Geoffrey Romer for additional feedback and help.
+\end{acknowledgments}
+
+
+\begin{thebibliography}{1}
+	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
+	
+	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
+	
+	\bibitem[N4835]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.	
+\end{thebibliography}
+
+\newpage
+
+%\begin{widetext}
+\onecolumngrid
+
+\section{Proposed Wording}
+
+\setlength{\parindent}{0pt}
+
+
+The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
+
+\subsection{Modification to ``The C standard library'' [library.c]}
+
+\hspace{-2.5ex} $^2$ The descriptions of many library functions rely on the C standard library for the semantics of those functions.
+In some cases, the signatures specified in this document may be different from the signatures in the C
+standard library, 
+\highlight{the functions may be declared constexpr in this document to permit use in constant expressions [constexpr.functions],}
+and additional overloads may be declared in this document, but the behaviour and the
+preconditions (including any preconditions implied by the use of an ISO C restrict qualifier) are the same
+unless otherwise stated.
+
+\vspace{1ex}
+
+\highlight{\hspace{-2.5ex} $^3$ A call to a C standard library function that encounters a domain error or overflow is not a core constant expression}
+\highlight{[expr.const].}
+
+
+\subsection{Modifications to ``Header \header{version} synposis'' [version.syn]}
+
+A new row is to be added to table [tab:support.ft]:
+
+\vspace{1ex}
+
+\highlight{
+	\code{\#define \_\_cpp\_lib\_constexpr\_math} \qquad \qquad 201902L
+	\qquad \qquad // {\it also in} \header{cmath}, \header{cstdlib}
+}
+
+
+
+\subsection{Modifications to ``Header \header{cstdlib} synopsis'' [cstdlib.syn]}
+
+\code{namespace std\{
+
+\vspace{2ex}
+
+\ldots
+
+\vspace{2ex}
+
+//[c.math.abs], {\it absolute values}
+
+\highlight{constexpr} int abs(int j);
+
+\highlight{constexpr}  long int abs(long int j);
+
+\highlight{constexpr}  long long int abs(long long int j);
+
+\highlight{constexpr}  float abs(float j);
+
+\highlight{constexpr} double abs(double j);
+
+\highlight{constexpr} long double abs(long double j);
+
+\vspace{2ex}
+
+\highlight{constexpr} long int labs(long int j);
+
+\highlight{constexpr}  long long int llabs(long long int j);
+
+\vspace{2ex}
+
+\highlight{constexpr} div\_t div(int numer, int denom);
+
+\highlight{constexpr} ldiv\_t div(long int numer, long int denom); \stdcomment{library.c}
+
+\highlight{constexpr} lldiv\_t div(long long int numer, long long int denom); \stdcomment{library.c}
+
+\highlight{constexpr} ldiv\_t ldiv(long int numer, long int denom);
+
+\highlight{constexpr} lldiv\_t lldiv(long long int numer, long long int denom);	
+
+\}}
+
+\subsection{Modifications to  ``Header \header{cmath} synopsis'' [cmath.syn]}
+
+\code{
+\ldots
+\vspace{2ex}
+
+namespace std\{
+
+\vspace{2ex}
+\ldots
+\vspace{2ex}
+
+float acos(float x); \stdcomment{library.c}
+
+double acos(double x);
+
+long double acos(long double x); \stdcomment{library.c}
+
+float acosf(float x);
+
+long double acosl(long double x);
+
+\vspace{2ex}
+\ldots
+\vspace{2ex}
+
+\highlight{constexpr}  float frexp(float value, int* exp); \stdcomment{library.c}
+
+\highlight{constexpr}  double frexp(double value, int* exp);
+
+\highlight{constexpr}  long double frexp(long double value, int* exp); \stdcomment{library.c}
+
+\highlight{constexpr}  float frexpf(float value, int* exp);
+
+\highlight{constexpr}  long double frexpl(long double value, int* exp);
+
+\vspace{2ex}
+
+\highlight{constexpr} int ilogb(float x); \stdcomment{library.c}
+
+\highlight{constexpr} int ilogb(double x);
+
+\highlight{constexpr} int ilogb(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} int ilogbf(float x);
+
+\highlight{constexpr} int ilogbl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float ldexp(float x, int exp); \stdcomment{library.c}
+
+\highlight{constexpr} double ldexp(double x, int exp);
+
+\highlight{constexpr} long double ldexp(long double x, int exp); \stdcomment{library.c}
+
+\highlight{constexpr} float ldexpf(float x, int exp);
+
+\highlight{constexpr} long double ldexpl(long double x, int exp);
+
+\vspace{2ex}
+
+float log(float x); \stdcomment{library.c}
+
+double log(double x);
+
+long double log(long double x); \stdcomment{library.c}
+
+float logf(float x);
+
+long double logl(long double x);
+
+\vspace{2ex}
+
+float log10(float x); \stdcomment{library.c}
+
+double log10(double x);
+
+long double log10(long double x); \stdcomment{library.c}
+
+float log10f(float x);
+
+long double log10l(long double x);
+
+\vspace{2ex}
+
+float log1p(float x); \stdcomment{library.c}
+
+double log1p(double x);
+
+long double log1p(long double x); \stdcomment{library.c}
+
+float log1pf(float x);
+
+long double log1pl(long double x);
+
+\vspace{2ex}
+
+float log2(float x); \stdcomment{library.c}
+
+double log2(double x);
+
+long double log2(long double x); \stdcomment{library.c}
+
+float log2f(float x);
+
+long double log2l(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float logb(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double logb(double x);
+
+\highlight{constexpr} long double logb(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float logbf(float x);
+
+\highlight{constexpr} long double logbl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float modf(float value, float* iptr); \stdcomment{library.c}
+
+\highlight{constexpr}  double modf(double value, double* iptr);
+
+\highlight{constexpr}  long double modf(long double value, long double* iptr); \stdcomment{library.c}
+
+\highlight{constexpr}  float modff(float value, float* iptr);
+
+\highlight{constexpr}  long double modfl(long double value, long double* iptr);
+
+\vspace{2ex}
+
+\highlight{constexpr} float scalbn(float x, int n); \stdcomment{library.c}
+
+\highlight{constexpr} double scalbn(double x, int n);
+
+\highlight{constexpr} long double scalbn(long double x, int n); \stdcomment{library.c}
+
+\highlight{constexpr} float scalbnf(float x, int n);
+
+\highlight{constexpr} long double scalbnl(long double x, int n);
+
+\vspace{2ex}
+
+\highlight{constexpr} float scalbln(float x, long int n); \stdcomment{library.c}
+
+\highlight{constexpr} double scalbln(double x, long int n);
+
+\highlight{constexpr} long double scalbln(long double x, long int n); \stdcomment{library.c}
+
+\highlight{constexpr} float scalblnf(float x, long int n);
+
+\highlight{constexpr} long double scalblnl(long double x, long int n);
+
+\vspace{2ex}
+
+float cbrt(float x); \stdcomment{library.c}
+
+double cbrt(double x);
+
+long double cbrt(long double x); \stdcomment{library.c}
+
+float cbrtf(float x);
+
+long double cbrtl(long double x);
+
+\vspace{2ex}
+
+//  [c.math.abs], {\it absolute values}
+
+\highlight{constexpr} int abs(int j);
+
+\highlight{constexpr} long int abs(long int j);
+
+\highlight{constexpr} long long int abs(long long int j);
+
+\highlight{constexpr} float abs(float j);
+
+\highlight{constexpr} double abs(double j);
+
+\highlight{constexpr}long double abs(long double j);
+
+\vspace{2ex}
+
+\highlight{constexpr} float fabs(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double fabs(double x);
+
+\highlight{constexpr} long double fabs(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float fabsf(float x);
+
+\highlight{constexpr} long double fabsl(long double x);
+
+\vspace{2ex}
+
+float hypot(float x, float y); \stdcomment{library.c}
+
+double hypot(double x, double y);
+
+long double hypot(double x, double y); \stdcomment{library.c}
+
+float hypotf(float x, float y);
+
+long double hypotl(long double x, long double y);
+
+\vspace{2ex}
+
+// [c.math.hypot3], {\it three-dimensional hypotenuse}
+
+float hypot(float x, float y, float z);
+
+double hypot(double x, double y, double z);
+
+long double hypot(long double x, long double y, long double z);
+
+\vspace{2ex}
+\ldots
+\vspace{2ex}
+
+\highlight{constexpr} float ceil(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double ceil(double x);
+
+\highlight{constexpr} long double ceil(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float ceilf(float x);
+
+\highlight{constexpr} long double ceill(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float floor(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double floor(double x);
+
+\highlight{constexpr} long double floor(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float floorf(float x);
+
+\highlight{constexpr} long double floorl(long double x);
+
+\vspace{2ex}
+
+float nearbyint(float x); \stdcomment{library.c}
+
+double nearbyint(double x);
+
+long double nearbyint(long double x); \stdcomment{library.c}
+
+ float nearbyintf(float x);
+
+ long double nearbyintl(long double x);
+
+\vspace{2ex}
+
+ float rint(float x); \stdcomment{library.c}
+
+ double rint(double x);
+
+long double rint(long double x); \stdcomment{library.c}
+
+ float rintf(float x);
+
+ long double rintl(long double x);
+
+\vspace{2ex}
+
+long int lrint(float x); \stdcomment{library.c}
+
+ long int lrint(double x);
+
+long int lrint(long double x); \stdcomment{library.c}
+
+ long int lrintf(float x);
+
+long int lrintl(long double x);
+
+\vspace{2ex}
+
+long long int llrint(float x); \stdcomment{library.c}
+
+long long int llrint(double x);
+
+long long int llrint(long double x); \stdcomment{library.c}
+
+long long int llrintf(float x);
+
+long long int llrintl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float round(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double round(double x);
+
+\highlight{constexpr} long double round(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float roundf(float x);
+
+\highlight{constexpr} long double roundl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} long int lround(float x); \stdcomment{library.c}
+
+\highlight{constexpr} long int lround(double x);
+
+\highlight{constexpr} long int lround(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} long int lroundf(float x);
+
+\highlight{constexpr} long int lroundl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} long long int llround(float x); \stdcomment{library.c}
+
+\highlight{constexpr} long long int llround(double x);
+
+\highlight{constexpr} long long int llround(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} long long int llroundf(float x);
+
+\highlight{constexpr} long long int llroundl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float trunc(float x); \stdcomment{library.c}
+
+\highlight{constexpr} double trunc(double x);
+
+\highlight{constexpr} long double trunc(long double x); \stdcomment{library.c}
+
+\highlight{constexpr} float truncf(float x);
+
+\highlight{constexpr} long double truncl(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} float fmod(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr} double fmod(double x, double y);
+
+\highlight{constexpr} long double fmod(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr} float fmodf(float x, float y);
+
+\highlight{constexpr} long double fmodl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} float remainder(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr} double remainder(double x, double y);
+
+\highlight{constexpr} long double remainder(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr} float remainderf(float x, float y);
+
+\highlight{constexpr} long double remainderl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float remquo(float x, float y, int* quo); \stdcomment{library.c}
+
+\highlight{constexpr}  double remquo(double x, double y, int* quo);
+
+\highlight{constexpr}  long double remquo(long double x, long double y, int* quo); \stdcomment{library.c}
+
+\highlight{constexpr}  float remquof(float x, float y, int* quo);
+
+\highlight{constexpr}  long double remquol(long double x, long double y, int* quo);
+
+\vspace{2ex}
+
+\highlight{constexpr} float copysign(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr} double copysign(double x, double y);
+
+\highlight{constexpr} long double copysign(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr} float copysignf(float x, float y);
+
+\highlight{constexpr} long double copysignl(long double x, long double y);
+
+\vspace{2ex}
+
+double nan(const char* tagp);
+
+float nanf(const char* tagp);
+
+long double nanl(const char* tagp);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float nextafter(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr}  double nextafter(double x, double y);
+
+\highlight{constexpr}  long double nextafter(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr}  float nextafterf(float x, float y);
+
+\highlight{constexpr}  long double nextafterl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float nexttoward(float x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr}  double nexttoward(double x, long double y);
+
+\highlight{constexpr}  long double nexttoward(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr}  float nexttowardf(float x, long double y);
+
+\highlight{constexpr}  long double nexttowardl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float fdim(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr}  double fdim(double x, double y);
+
+\highlight{constexpr}  long double fdim(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr}  float fdimf(float x, float y);
+
+\highlight{constexpr}  long double fdiml(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float fmax(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr}  double fmax(double x, double y);
+
+\highlight{constexpr}  long double fmax(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr}  float fmaxf(float x, float y);
+
+\highlight{constexpr}  long double fmaxl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} float fmin(float x, float y); \stdcomment{library.c}
+
+\highlight{constexpr}  double fmin(double x, double y);
+
+\highlight{constexpr}  long double fmin(long double x, long double y); \stdcomment{library.c}
+
+\highlight{constexpr}  float fminf(float x, float y);
+
+\highlight{constexpr} long double fminl(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr}  float fma(float x, float y, float z); \stdcomment{library.c}
+
+\highlight{constexpr}  double fma(double x, double y, double z);
+
+\highlight{constexpr}  long double fma(long double x, long double y, long double z); \stdcomment{library.c}
+
+\highlight{constexpr}  float fmaf(float x, float y, float z);
+
+\highlight{constexpr}  long double fmal(long double x, long double y, long double z);
+
+\vspace{2ex}
+
+// [c.math.fpclass], {\it classification / comparison functions:}
+
+\highlight{constexpr} int fpclassify(float x);
+
+\highlight{constexpr} int fpclassify(double x);
+
+\highlight{constexpr} int fpclassify(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isfinite(float x);
+
+\highlight{constexpr} int isfinite(double x);
+
+\highlight{constexpr} int isfinite(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isinf(float x);
+
+\highlight{constexpr} int isinf(double x);
+
+\highlight{constexpr} int isinf(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isnan(float x);
+
+\highlight{constexpr} int isnan(double x);
+
+\highlight{constexpr} int isnan(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isnormal(float x);
+
+\highlight{constexpr} int isnormal(double x);
+
+\highlight{constexpr} int isnormal(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int signbit(float x);
+
+\highlight{constexpr} int signbit(double x);
+
+\highlight{constexpr} int signbit(long double x);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isgreater(float x, float y);
+
+\highlight{constexpr} int isgreater(double x, double y);
+
+\highlight{constexpr} int isgreater(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isgreaterequal(float x, float y);
+
+\highlight{constexpr} int isgreaterequal(double x, double y);
+
+\highlight{constexpr} int isgreaterequal(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isless(float x, float y);
+
+\highlight{constexpr} int isless(double x, double y);
+
+\highlight{constexpr} int isless(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int islessequal(float x, float y);
+
+\highlight{constexpr} int islessequal(double x, double y);
+
+\highlight{constexpr} int islessequal(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int islessgreater(float x, float y);
+
+\highlight{constexpr} int islessgreater(double x, double y);
+
+\highlight{constexpr} int islessgreater(long double x, long double y);
+
+\vspace{2ex}
+
+\highlight{constexpr} int isunordered(float x, float y);
+
+\highlight{constexpr} int isunordered(double x, double y);
+
+\highlight{constexpr} int isunordered(long double x, long double y);
+}
+
+\subsection{Modifications to  ``Absolute Values''  [c.math.abs]}
+\vspace{-2ex}
+\ldots
+\vspace{2ex}
+
+\code{
+	\highlight{constexpr}  int abs(int j);
+	
+	\highlight{constexpr} long int abs(long int j);
+	
+	\highlight{constexpr} long long int abs(long long int j);
+
+	\highlight{constexpr} float abs(float j);
+	
+	\highlight{constexpr}  double abs(double j);
+
+	\highlight{constexpr} long double abs(long double j);
+}
+
+
+%\end{widetext}
+
+\end{document}
