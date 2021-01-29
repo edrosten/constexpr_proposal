@@ -473,9 +473,9 @@ The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 
 \hspace{-2.5ex} $^2$ The descriptions of many library functions rely on the C standard library for the semantics of those functions.
 In some cases, the signatures specified in this document may be different from the signatures in the C
-standard library, 
-\highlight{the functions may be declared constexpr in this document to permit use in constant expressions [constexpr.functions],}
-and additional overloads may be declared in this document, but the behaviour and the
+standard library. 
+\highlight{The functions declared constexpr are permissible in constant expressions [constexpr.functions].}
+Additional overloads may be declared in this document, but the behaviour and the
 preconditions (including any preconditions implied by the use of an ISO C restrict qualifier) are the same
 unless otherwise stated.
 
@@ -487,12 +487,12 @@ unless otherwise stated.
 
 \subsection{Modifications to ``Header \header{version} synposis'' [version.syn]}
 
-A new row is to be added to table [tab:support.ft]:
+A new row is to be added:
 
 \vspace{1ex}
 
 \highlight{
-	\code{\#define \_\_cpp\_lib\_constexpr\_math} \qquad \qquad 201902L
+	\code{\#define \_\_cpp\_lib\_constexpr\_cmath} \qquad \qquad 20????L
 	\qquad \qquad // {\it also in} \header{cmath}, \header{cstdlib}
 }
 
@@ -1018,11 +1018,7 @@ long double nanl(const char* tagp);
 
 constexpr float lerp(float a, float b, float t) noexcept;
 
-\vspace{2ex}
-
 constexpr double lerp(double a, double b, double t) noexcept;
-
-\vspace{2ex}
 
 constexpr long double lerp(long double a, long double b, long double t) noexcept;
 
