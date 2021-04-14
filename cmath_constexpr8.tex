@@ -5,6 +5,7 @@
 \usepackage{xcolor}
 \usepackage{soul}
 \usepackage{fancyvrb}
+\usepackage{verbatimbox}
 
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
@@ -118,16 +119,16 @@ implied that any implementation cannot be done as a pure library extension. Howe
 Either way, below
 we will introduce a criterion which restricts the proposed set of \constexpr\ functions 
 to those which are, in a sense, simple. Consequently, while there will be some burden 
-on compiler vendors it should be minimal. 
+on compiler vendors it is hoped to be acceptable. 
 
 \subsection{Rounding Mode}
 \label{sec:rounding}
 
-Some of the functions in \cmath\ depend on the rounding mode, which is something which may be changed at runtime. To facilitate the discussion, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
+Some of the functions in \cmath\ depend on the rounding mode, which is something that may be changed at runtime. To facilitate the discussion, we wish to distinguish two situations, which we will call \emph{weak}/\emph{strong} rounding mode dependence. 
 
-Weak dependence is that already experienced by the arithmetic operators. For example, consider 10.0/3.0: the result depends on the rounding mode. We refer to this rounding mode dependence as weak since it is an artefact of the limited precision of floating-point numbers. However, it is perfectly legitimate to declare
+Weak dependence is that already experienced by the arithmetic operators. For example, consider 1.0/3.0: the result depends on the rounding mode. We refer to this rounding mode dependence as weak since it is an artefact of the limited precision of floating-point numbers. However, it is perfectly legitimate to declare
 \begin{equation}
-	\mbox{\code{constexpr double x\{10.0/3.0\}}}.
+	\mbox{\code{constexpr double x\{1.0/3.0\}}}.
 \label{eq:10/3}
 \end{equation}
 Therefore, when deciding which functions in \cmath\ should be \constexpr, we will not rule out functions with weak rounding mode dependence.
@@ -169,7 +170,7 @@ the application of \constexpr on a rigorous footing:
 \begin{proposal*}
 	A function in \cmath\ shall be declared \constexpr if and only if:
 	\begin{enumerate}
-		\item When taken to act on the set of rational numbers, or every finite subset thereof%
+		\item When taken to act on the set of rational numbers, or every countable subset thereof%
 		\footnote{This clause ensures that \code{std::nexttoward} and \code{std::nextafter} are 
 		admitted.},
 		the function is closed (excluding division by, or logarithms%
@@ -189,11 +190,20 @@ By means of a brief illustration, $\code{abs}$ satisfies all three criteria; how
 
 Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
 Indeed, GCC 5.3.0 declares all functions, besides the special functions, those taking a pointer argument
-(cf.~\ref{sec:external}) and those with an explicit dependence on the runtime rounding mode (\ref{sec:rounding}) as \constexpr. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose).
+(cf.~\ref{sec:external}) and those with an explicit dependence on the runtime rounding mode (\ref{sec:rounding}) as \constexpr. However, there are a handful of edge cases which GCC treats inconsistently, all involving either infinity or NaN. For brevity, the following shorthand will be employed:\vspace{3ex}
+\begin{verbbox}
+	constexpr auto inf{
+	    std::numeric_limits<double>::infinity()};
+\end{verbbox}
+\theverbbox
+\vspace{3ex}
+Now, consider, for example, \code{std::ldexp(inf, 1)}. Despite the fact that GCC neither sets errno nor raises any floating-point exception flags, it prohibits the use of this expression in a \constexpr\ context. By contrast, GCC is perfectly happy for \code{std::logb(inf)} to used in a constexpr context.
+
+However, it should be emphasised that, in almost all cases, GCC behaves exactly as one would want. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose since it declares additional functions \constexpr).
 While clang does not go nearly as far as GCC, it does offer some functions as 
 builtins and is able to use them to perform compile time computations, constant
 propagation and so on. It is therefore hoped that any burden on compiler vendors implicit in this
-proposal is minimal.
+proposal is acceptable.
 
 \section{Impact On the Standard}
 \label{sec:impact}
@@ -447,7 +457,7 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 	
 	\item [R7] Rebase to N4878 and add a note that \code{lerp}, which is declared \constexpr, has been added to \cmath; minor tweaks to wording following review by LWG.
 	
-	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions.
+	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Add `pole error' to the proposed wording.
 \end{enumerate}
 
 \begin{acknowledgments}
@@ -489,7 +499,8 @@ unless otherwise stated.
 
 \vspace{1ex}
 
-\highlight{\hspace{-2.5ex} $^3$ A call to a C standard library function that encounters a domain error or overflow is not a core constant expression}
+\highlight{\hspace{-2.5ex} $^3$ A call to a C standard library function that encounters a domain error, pole error or overflow is not a core constant}
+\highlight{expression}
 \highlight{[expr.const].}
 
 
