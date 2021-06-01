@@ -108,7 +108,7 @@ of a mathematical function in a \constexpr\ context then compilation fails. The 
 as to whether compilation should so fail is unambiguously answered by deferring to the 
 C standard's Annex F~\cite{CLang}.
 
-For example, \code{std::lround(double x)}, which rounds its argument to the nearest integer value.
+For example, consider \code{std::lround(double x)}, which rounds its argument to the nearest integer value.
 What should this do if its argument is NaN or $\pm \infty$? Without concrete guidance, implementors could reasonably adopt a variety of strategies. However, according to~\cite{CLang} \FEINVALID\ is raised in these cases and so that is the solution advocated by this paper.
 
 It is important to note that the issue of raising exception flags in a \constexpr context is nothing new: it is already faced by the standard arithmetic operators. Nevertheless, the latter are available for use in constant expressions. A concrete example is given by
@@ -194,15 +194,15 @@ By means of a brief illustration, $\code{abs}$ satisfies all three criteria; how
 \section{State of the Art}
 
 Both GCC and clang already support \constexpr within \cmath\ to varying extents. 
-Indeed, GCC 5.3.0 declares all functions, besides the special functions, those taking a pointer argument
-(cf.~\ref{sec:external}) and those with an explicit dependence on the runtime rounding mode (\ref{sec:rounding}) as \constexpr. However, there are a handful of edge cases which GCC treats inconsistently, all involving either infinity or NaN. For brevity, the following shorthand will be employed:\vspace{3ex}
+Indeed, at least as early as GCC 5.3.0 almost all functions, besides the special functions, those taking a pointer argument
+(cf.~\ref{sec:external}) and those with an explicit dependence on the runtime rounding mode (\ref{sec:rounding}) are declared \constexpr. However, there are a handful of edge cases which GCC treats inconsistently, all involving either infinity or NaN. For brevity, the following shorthand will be employed:\vspace{3ex}
 \begin{verbbox}
 	constexpr auto inf{
 	    std::numeric_limits<double>::infinity()};
 \end{verbbox}
 \theverbbox
 \vspace{3ex}
-Now, consider, for example, \code{std::ldexp(inf, 1)}. Despite the fact that GCC neither sets errno nor raises any floating-point exception flags, it prohibits the use of this expression in a \constexpr\ context. By contrast, GCC is perfectly happy for \code{std::logb(inf)} to used in a constexpr context.
+Now, consider, for example, \code{std::ldexp(inf, 1)}. Despite the fact that GCC neither sets errno nor raises any floating-point exception flags, it prohibits the use of this expression in a \constexpr\ context. By contrast, GCC is perfectly happy for \code{std::logb(inf)} to used in a constexpr context. A breakdown of GCC's current behaviour can be found here~\cite{Blessed}.
 
 However, it should be emphasised that, in almost all cases, GCC behaves exactly as one would want. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose since it declares additional functions \constexpr).
 While clang does not go nearly as far as GCC, it does offer some functions as 
@@ -462,7 +462,7 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 	
 	\item [R7] Rebase to N4878 and add a note that \code{lerp}, which is declared \constexpr, has been added to \cmath; minor tweaks to wording following review by LWG.
 	
-	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Add `pole error' to the proposed wording.
+	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Amend the wording in line with the 2021-05-17 Library Evolution Telecon.
 \end{enumerate}
 
 \begin{acknowledgments}
