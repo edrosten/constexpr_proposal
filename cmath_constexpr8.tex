@@ -103,17 +103,21 @@ Indeed, two subtleties can be resolved by appealing to the fact that they must b
 Under certain conditions, various functions in \cmath\ may set global flags.
 Specifically, \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
-\FEINEXACT\ may be raised. 
+\FEINEXACT\ may be raised. The strategy adopted is that if this occurs during evaluation
+of a mathematical function in a \constexpr\ context then compilation fails. The question
+as to whether compilation should so fail is unambiguously answered by deferring to the 
+C standard's Annex F~\cite{CLang}.
 
-For example, \code{std::lround(double x)}, which rounds its argument to the nearest integer value, raises \FEINVALID\ in the case that its argument is NaN or $\pm \infty$. This may seem problematic if one wishes to declare \code{std::lround(double x)} to be \constexpr. 
-However, the issue of raising exception flags in a \constexpr context is nothing new: it is already faced by
-the standard arithmetic operators. Nevertheless, the latter are available for use in constant
-expressions. The proposed strategy is to mimic the behaviour of the arithmetic
-operators.
+For example, \code{std::lround(double x)}, which rounds its argument to the nearest integer value.
+What should this do if its argument is NaN or $\pm \infty$? Without concrete guidance, implementors could reasonably adopt a variety of strategies. However, according to~\cite{CLang} \FEINVALID\ is raised in these cases and so that is the solution advocated by this paper.
 
-To be precise, functions declared \constexpr, \emph{when used in a \constexpr
-context}, should give a compiler error if division by zero, domain errors or
-overflows occur. When not used in a \constexpr context, the various global
+It is important to note that the issue of raising exception flags in a \constexpr context is nothing new: it is already faced by the standard arithmetic operators. Nevertheless, the latter are available for use in constant expressions. A concrete example is given by
+\begin{Verbatim}
+	std::numeric_limits<double>::max() * 2;	
+\end{Verbatim}
+which raises both \FEINVALID\ and \FEOVERFLOW; indeed, GCC rejects this as a constant expression.
+
+When not used in a \constexpr context, the various global
 flags should be set as normal. This distinction between these two contexts previously 
 implied that any implementation cannot be done as a pure library extension. However, the emergence of \code{std::is\_constant\_evaluated()} \cite{ConstEval} may allow for this be circumvented.
 Either way, below
@@ -464,15 +468,18 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 \begin{acknowledgments}
 	We would like to thank Daniel Kr\"ugler, Antony Polukhin and especially Walter E.~Brown 
 	for encouragement and advice. Sincere thanks also to Richard Smith for help with standardese
-	and Jens Maurer and Geoffrey Romer for additional feedback and help.
+	and Jens Maurer, Geoffrey Romer and Hubert Tong for additional feedback and help.
 \end{acknowledgments}
 
 
 \begin{thebibliography}{1}
-	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
+	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
+	
+	\bibitem[n2176]{CLang} ISO/IEC 9899:2018 Standard for Programming Languages --- C
 	
 	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
 	
+	\bibitem[GCC Behaviour]{Blessed} \url{https://godbolt.org/z/dMGxh61xj}	
 	\bibitem[N4878]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
 \end{thebibliography}
 
