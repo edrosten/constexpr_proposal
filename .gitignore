@@ -3,4 +3,9 @@
 *.log
 *.aux
 *.bib
+*.toc
+*.gz
+*.bbl
+*.blg
+.DS_Store
 src/constexpr_sqrt
