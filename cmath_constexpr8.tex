@@ -6,6 +6,7 @@
 \usepackage{soul}
 \usepackage{fancyvrb}
 \usepackage{verbatimbox}
+\usepackage{hyperref}
 
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
@@ -204,7 +205,8 @@ Indeed, at least as early as GCC 5.3.0 almost all functions, besides the special
 \vspace{3ex}
 Now, consider, for example, \code{std::ldexp(inf, 1)}. Despite the fact that GCC neither sets errno nor raises any floating-point exception flags, it prohibits the use of this expression in a \constexpr\ context. By contrast, GCC is perfectly happy for \code{std::logb(inf)} to used in a constexpr context. A breakdown of GCC's current behaviour can be found here~\cite{Blessed}.
 
-However, it should be emphasised that, in almost all cases, GCC behaves exactly as one would want. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose since it declares additional functions \constexpr).
+Note that, aside from these edge cases, the only function for which the behaviour does not conform to that specified in this paper is \code{std::fmod} which does not seem useable in constant expressions.
+Indeed, it should be emphasised that, in almost all cases, GCC behaves exactly as one would want. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose since it declares additional functions \constexpr).
 While clang does not go nearly as far as GCC, it does offer some functions as 
 builtins and is able to use them to perform compile time computations, constant
 propagation and so on. It is therefore hoped that any burden on compiler vendors implicit in this
@@ -472,14 +474,15 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 \end{acknowledgments}
 
 
-\begin{thebibliography}{1}
-	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
-	
+\begin{thebibliography}{1}	
 	\bibitem[n2176]{CLang} ISO/IEC 9899:2018 Standard for Programming Languages --- C
 	
 	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
 	
 	\bibitem[GCC Behaviour]{Blessed} \url{https://godbolt.org/z/dMGxh61xj}	
+	
+	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
+	
 	\bibitem[N4878]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
 \end{thebibliography}
 
@@ -507,9 +510,8 @@ unless otherwise stated.
 
 \vspace{1ex}
 
-\highlight{\hspace{-2.5ex} $^3$ A call to a C standard library function that encounters a domain error, pole error or overflow is not a core constant}
-\highlight{expression}
-\highlight{[expr.const].}
+\highlight{\hspace{-2.5ex} $^3$ A call to a C standard library function that, according to Annex F of the C standard raises a floating-point exception},
+\highlight{is not a core constant expression [expr.const].}
 
 
 \subsection{Modifications to ``Header \header{version} synposis'' [version.syn]}
