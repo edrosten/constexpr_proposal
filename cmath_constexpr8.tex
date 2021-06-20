@@ -75,6 +75,27 @@ in order to be useful but without placing too much burden on compiler vendors.
 
 \tableofcontents
 
+\section{Revision History}
+
+\begin{enumerate}
+	\item[R1] Includes discussion of rounding mode and future directions. 
+	
+	\item[R2] More stable tags utilized.
+	
+	\item[R3] Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. Proposed a modification to [library.c].
+	
+	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension---see the final paragraph of~\ref{sec:global} and the first of \ref{sec:impact}. Clarifications to the `state of the art'.
+	
+	\item [R5] Highlighting of proposed changes improved plus minor tweaks to ensure consistency with the latest draft of the standard.
+	
+	\item [R6] Transfer proposed wording from [expr.const] to [library.c]; propose the addition of a feature-test macro; further improvements to highlighting; Update the location of the feature-test macro to [version.syn].
+	
+	\item [R7] Rebase to N4878 and add a note that \code{lerp}, which is declared \constexpr, has been added to \cmath; minor tweaks to wording following review by LWG.
+	
+	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Amend the wording in line with the spirit of the 2021-05-17 Library Evolution Telecon.
+\end{enumerate}
+
+
 \section{Introduction}
 
 This paper seeks to rectify the almost complete absence of \constexpr in
@@ -105,9 +126,11 @@ Under certain conditions, various functions in \cmath\ may set global flags.
 Specifically, \code{errno} may be set and/or the various floating-point
 exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
 \FEINEXACT\ may be raised. The strategy adopted is that if this occurs during evaluation
-of a mathematical function in a \constexpr\ context then compilation fails. The question
-as to whether compilation should so fail is unambiguously answered by deferring to the 
-C standard's Annex F~\cite{CLang}.
+of a mathematical function in a \constexpr\ context then compilation fails, except in the situation
+where only \FEINEXACT\ is raised. The question as to when these flags should be raised is answered by deferring, wherever possible, to the C Standard's Annex F~\cite{CLang}. The latter applies, in its
+entirety, to floating-point models with signed zeros, extended with NaNs and signed infinities. Thus,
+whenever the floating-point model under consideration renders part of Annex F applicable, this is
+used to unambiguously specify the conditions under which floating-point exceptions are raised.
 
 For example, consider \code{std::lround(double x)}, which rounds its argument to the nearest integer value.
 What should this do if its argument is NaN or $\pm \infty$? Without concrete guidance, implementors could reasonably adopt a variety of strategies. However, according to~\cite{CLang} \FEINVALID\ is raised in these cases and so that is the solution advocated by this paper.
@@ -203,7 +226,7 @@ Indeed, at least as early as GCC 5.3.0 almost all functions, besides the special
 \end{verbbox}
 \theverbbox
 \vspace{3ex}
-Now, consider, for example, \code{std::ldexp(inf, 1)}. Despite the fact that GCC neither sets errno nor raises any floating-point exception flags, it prohibits the use of this expression in a \constexpr\ context. By contrast, GCC is perfectly happy for \code{std::logb(inf)} to used in a constexpr context. A breakdown of GCC's current behaviour can be found here~\cite{Blessed}.
+Now, consider, for example, \code{std::ldexp(inf, 1)}. Despite the fact that GCC neither sets errno nor raises any floating-point exception flags, it prohibits the use of this expression in a \constexpr\ context. By contrast, GCC is perfectly happy for \code{std::logb(inf)} to be used in a \constexpr\ context. A breakdown of GCC's current behaviour can be found here~\cite{Blessed}.
 
 Note that, aside from these edge cases, the only function for which the behaviour does not conform to that specified in this paper is \code{std::fmod} which does not seem useable in constant expressions.
 Indeed, it should be emphasised that, in almost all cases, GCC behaves exactly as one would want. Therefore, an implementation of the changes to the standard proposed in this paper is mostly available (indeed, in some regards the GCC implementation goes beyond what we propose since it declares additional functions \constexpr).
@@ -215,7 +238,7 @@ proposal is acceptable.
 \section{Impact On the Standard}
 \label{sec:impact}
 
-This proposal adds an extra statement to [library.c], referring back to [expr.const], indicating that if a (mathematical) function encounters a domain error or overflow, then it may not form part of a constant expression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$ it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case.
+This proposal adds an extra statement to [library.c], referring back to [expr.const], indicating that if a (mathematical) function raises a floating-point flag other than \FEINEXACT, then it may not form part of a constant expression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$ it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case. Beyond this, Annex F of the C Standard is invoked, wherever possible, to define precisely when floating-point exceptions should be raised.
 
 [library.c] is amended to explicitly indicate that, compared to the underlying C signatures, the C++ counterparts may be declared \constexpr. A new feature-test macro is added to [support.limits.general].
 
@@ -447,26 +470,6 @@ If more than one of these applies, then this is indicated using $\vert$; for exa
 
 Ultimately, it is desirable to follows GCC's lead and to declare almost all functions in \cmath\ as \constexpr. This will amount to removing the first criterion of our proposal which, particularly once the issue of the interaction of rounding mode with \constexpr\ has been fully resolved, should hopefully be relatively uncontroversial.
 
-\section{Revision History}
-
-\begin{enumerate}
-	\item[R1] Includes discussion of rounding mode and future directions. 
-	
-	\item[R2] More stable tags utilized.
-	
-	\item[R3] Lifted the unnecessary restriction not to include functions which modify an argument with external visibility. Proposed a modification to [library.c].
-	
-	\item [R4] Leverage $\code{std\!::\!is\_constant\_evaluated()}$ as a mechanism to allow implementation of this proposal as a pure library extension---see the final paragraph of~\ref{sec:global} and the first of \ref{sec:impact}. Clarifications to the `state of the art'.
-	
-	\item [R5] Highlighting of proposed changes improved plus minor tweaks to ensure consistency with the latest draft of the standard.
-	
-	\item [R6] Transfer proposed wording from [expr.const] to [library.c]; propose the addition of a feature-test macro; further improvements to highlighting; Update the location of the feature-test macro to [version.syn].
-	
-	\item [R7] Rebase to N4878 and add a note that \code{lerp}, which is declared \constexpr, has been added to \cmath; minor tweaks to wording following review by LWG.
-	
-	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Amend the wording in line with the 2021-05-17 Library Evolution Telecon.
-\end{enumerate}
-
 \begin{acknowledgments}
 	We would like to thank Daniel Kr\"ugler, Antony Polukhin and especially Walter E.~Brown 
 	for encouragement and advice. Sincere thanks also to Richard Smith for help with standardese
@@ -483,7 +486,7 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 	
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.
 	
-	\bibitem[N4878]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
+	\bibitem[N4885]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
 \end{thebibliography}
 
 \newpage
@@ -510,8 +513,11 @@ unless otherwise stated.
 
 \vspace{1ex}
 
-\highlight{\hspace{-2.5ex} $^3$ A call to a C standard library function that, according to Annex F of the C standard raises a floating-point exception},
-\highlight{is not a core constant expression [expr.const].}
+
+
+\highlight{\parbox{\textwidth}{ \hspace{-2.5ex} $^3$
+A call to a C Standard library function that raises a floating-point exception, other than \FEINEXACT, is not a core constant expression [expr.const]. To the extent that the floating-point model renders any part of Annex F of the C Standard applicable
+[Footnote Annex F of the C Standard applies, in its entirety, to floating-point models with signed zeros, extended with NaNs and signed infinities. An equivalent specification would be to state that a call to a C Standard library function is not a core constant expression if errno is set when \code{math\_errhandling \& MATH\_ERRNO} is true.], the relevant parts of the latter shall be taken to specify the conditions under which floating-point exceptions are raised, and the behaviour in non-exceptional cases where NaNs and/or infinities are passed as arguments.}}
 
 
 \subsection{Modifications to ``Header \header{version} synposis'' [version.syn]}
