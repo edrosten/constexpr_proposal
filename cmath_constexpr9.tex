@@ -94,7 +94,9 @@ in order to be useful but without placing too much burden on compiler vendors.
 	
 	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Amend the wording in line with the spirit of the 2021-05-17 LEWG Telecon.
 	
-	\item [R9] Refine the wording in line with the spirit of the 2021-10-15 LWG Telecon, facilitated by adding a new definition [defns.nonconst.subexpr].
+	\item [R9] Refine the wording in line with the spirit of the 2021-10-15 LWG Telecon, facilitated by 
+	adding a new definition [defns.nonconst.subexpr] and normative wording to [expr.const]. The first of
+	the original changes to [library.c] has been removed following the 2021-10-22 LWG Telecon.
 \end{enumerate}
 
 
@@ -240,13 +242,10 @@ proposal is acceptable.
 \section{Impact On the Standard}
 \label{sec:impact}
 
-To facilitate the primary wording changes, a new definition [defns.nonconst.subexpr] is added to [intro.defs].
+To facilitate the primary wording changes, a new definition [defns.nonconst.subexpr] is added to [intro.defs], together with normative wording in [expr.const]. It is anticipated that these will be broadly useful, beyond the scope of this paper.
+Following this, an extra statement is added to [library.c], indicating that if a (mathematical) function raises a floating-point flag other than \FEINEXACT, then it is a non-constant subexpression. Annex F of the C Standard is invoked to define precisely when floating-point exceptions should be raised, and the behaviour when NaNs and/or infinities are passed as arguments. Beyond this, a new feature-test macro is added to [support.limits.general]. The remaining changes amount to scattering \constexpr\ throughout the existing headers \cmath\ and \header{cstdlib}, according to the rules specified earlier. 
 
-This proposal adds an extra statement to [library.c], indicating that if a (mathematical) function raises a floating-point flag other than \FEINEXACT, then it is a nonconstant subexpression. With the advent of $\code{std\!::\!is\_constant\_evaluated()}$ it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case. Beyond this, Annex F of the C Standard is invoked, wherever possible, to define precisely when floating-point exceptions should be raised.
-
-[library.c] is amended to explicitly indicate that, compared to the underlying C signatures, the C++ counterparts may be declared \constexpr. A new feature-test macro is added to [support.limits.general].
-
-The remaining changes amount to scattering \constexpr\ throughout the existing headers \cmath\ and \header{cstdlib}, according to the rules specified earlier. 
+With $\code{std\!::\!is\_constant\_evaluated()}$ it may be possible to implement the desired behaviour as a pure library extension; previously, this was not the case. 
 
 In this proposal, we have chosen for the standard to remain silent on the issue of the interaction of rounding mode dependence with constant expressions. On the one hand, this is no worse than the current situation regarding the arithmetic operators. On the other, the active discussion about how to optimally resolve this matter suggests to us that the issue is better served by a separate proposal.
 
@@ -476,8 +475,8 @@ Ultimately, it is desirable to follows GCC's lead and to declare almost all func
 
 \begin{acknowledgments}
 	We would like to thank Daniel Kr\"ugler, Antony Polukhin and especially Walter E.~Brown 
-	for encouragement and advice. Sincere thanks also to Richard Smith, Jens Maurer and
-	Tim Song
+	for encouragement and advice. Sincere thanks also to Richard Smith, Jens Maurer,
+	Tim Song and Davis Herring
 	for help with standardese and Geoffrey Romer, Hubert Tong and Jonathan Wakely for additional 
 	feedback and help.
 \end{acknowledgments}
@@ -510,15 +509,16 @@ The following proposed changes refer to the Working Paper~\cite{WorkingPaper}.
 \subsection{Modification to ``Terms and definitions'' [intro.defs]}
 
 \parbox{\textwidth}{
-{\bf 3.14}
+{\bf 3.35}
 \newline
-{\bf constant subexpression \hfill [defns.const.subexpr]}
+{\bf multibyte character \hfill [defns.multibyte]}
 \newline
-expression whose evaluation as subexpression of a conditional-expression CE would not prevent CE from being a core constant expression
-}
+sequence of one or more bytes representing a member of the extended character set of either the source or the execution environment
+\newline
+[{\it Note 1 to entry: The extended character set is a superset of the basic character set (5.3). ---end note}]}
 
 \highlight{\parbox{\textwidth}{
-{\bf 3.15}
+{\bf 3.36}
 \newline
 {\bf non-constant subexpression \hfill [defns.nonconst.subexpr]}
 \newline
@@ -526,34 +526,39 @@ expression whose evaluation as a subexpression of an expression E prevents E
 from being a core constant expression
 }}
 \parbox{\textwidth}{
-{\bf \remove{\st{3.15}} \highlight{3.16}}
+{\bf \remove{\st{3.36}} \highlight{3.37}}
 \newline
-{\bf deadlock \hfill [defns.deadlock]}
+{\bf NTCTS \hfill [defns.ntcts]}
 
 }
 
+\subsection{Modification to ``Constant expressions'' [expr.const]}
+
+
+\hspace{-2.5ex} $^5$ An expression E is a core constant expression unless the evaluation of E, following the rules of the abstract machine ([intro.execution]), would evaluate one of the following:
+\newline
+
+\ldots
+\newline
+
+(5.27) --- an invocation of the \code{va\_arg} macro ([cstdarg.syn]).
+
+\highlight{\parbox{\textwidth}{(5.28) --- a call to a library function, when the call is specified as a non-constant subexpression\hfill
+
+\hspace{2.25em} ([defns.nonconst.subexpr]).}}
+
+
 \subsection{Modification to ``The C standard library'' [library.c]}
-
-\hspace{-2.5ex} $^2$ The descriptions of many library functions rely on the C standard library for the semantics of those functions.
-In some cases, the signatures specified in this document may be different from the signatures in the C
-standard library. 
-\highlight{The functions declared constexpr are permissible in constant expressions [constexpr.functions].}
-Additional overloads may be declared in this document, but the behaviour and the
-preconditions (including any preconditions implied by the use of an ISO C restrict qualifier) are the same
-unless otherwise stated.
-
-\vspace{1ex}
-
-
 
 \highlight{\parbox{\textwidth}{ \hspace{-2.5ex} $^3$
 A call to a C standard library function is a non-constant
-subexpression [defns.nonconst.subexpr] if it raises a floating-point exception other
+subexpression ([defns.nonconst.subexpr]) if it raises a floating-point exception other
 than \FEINEXACT. 
 The semantics of a call to a C standard library
 function evaluated as a core constant expression are those
 specified in Annex F of the C standard [Footnote: see also ISO/IEC 9899:2018 section 7.6.]
-to the extent applicable to a floating-point type (basic.fundamental).
+to the extent applicable to the floating-point types ([basic.fundamental]) that are parameter
+types of the called function.
 [Note: Annex F specifies the conditions under which floating-point exceptions are raised and the behavior when NaNs and/or infinities
 are passed as arguments.]
 [Note: Equivalently, a call to a C standard library function is a non-constant subexpression if \code{errno} is set when \code{math\_errhandling \& MATH\_ERRNO} is \code{true}.] }}
