@@ -520,10 +520,9 @@ sequence of one or more bytes representing a member of the extended character se
 \highlight{\parbox{\textwidth}{
 {\bf 3.36}
 \newline
-{\bf non-constant subexpression \hfill [defns.nonconst.subexpr]}
+{\bf non-constant library call \hfill [defns.nonconst.libcall]}
 \newline
-expression whose evaluation as a subexpression of an expression E prevents E
-from being a core constant expression
+invocation of a library function that, as part of evaluating any expression E, prevents E from being a core constant expression
 }}
 \parbox{\textwidth}{
 {\bf \remove{\st{3.36}} \highlight{3.37}}
@@ -543,16 +542,14 @@ from being a core constant expression
 
 (5.27) --- an invocation of the \code{va\_arg} macro ([cstdarg.syn]).
 
-\highlight{\parbox{\textwidth}{(5.28) --- a call to a library function, when the call is specified as a non-constant subexpression\hfill
-
-\hspace{2.25em} ([defns.nonconst.subexpr]).}}
+\highlight{\parbox{\textwidth}{(5.28) --- non-constant library call ([defns.nonconst.libcall]).}}
 
 
 \subsection{Modification to ``The C standard library'' [library.c]}
 
 \highlight{\parbox{\textwidth}{ \hspace{-2.5ex} $^3$
 A call to a C standard library function is a non-constant
-subexpression ([defns.nonconst.subexpr]) if it raises a floating-point exception other
+library call ([defns.nonconst.libcall]) if it raises a floating-point exception other
 than \FEINEXACT. 
 The semantics of a call to a C standard library
 function evaluated as a core constant expression are those
