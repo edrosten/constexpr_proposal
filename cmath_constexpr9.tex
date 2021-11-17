@@ -47,7 +47,7 @@
 \author{
 \hspace{11.5em}
 \begin{tabular}{ll}
-	Document: & D0533R9
+	Document: & P0533R9
 \\
 	Date: & \today
 \\
@@ -94,8 +94,9 @@ in order to be useful but without placing too much burden on compiler vendors.
 	
 	\item [R8] Improve and correct some examples; correct the first criterion for selecting functions. Provide a better critique of the State of the Art. Amend the wording in line with the spirit of the 2021-05-17 LEWG Telecon.
 	
-	\item [R9] Refine the wording in line with the spirit of the 2021-10-15 LWG Telecon, facilitated by 
-	adding a new definition [defns.nonconst.subexpr] and normative wording to [expr.const]. The first of
+	\item [R9] Refine the wording in line with the spirit of the 2021-10-15 LWG Telecon---with input from the 
+	2021-11-12 CWG Telecon---facilitated by 
+	adding a new definition [defns.nonconst.libcall] and normative wording to [expr.const]. The first of
 	the original changes to [library.c] has been removed following the 2021-10-22 LWG Telecon.
 \end{enumerate}
 
@@ -542,7 +543,7 @@ invocation of a library function that, as part of evaluating any expression E, p
 
 (5.27) --- an invocation of the \code{va\_arg} macro ([cstdarg.syn]).
 
-\highlight{\parbox{\textwidth}{(5.28) --- non-constant library call ([defns.nonconst.libcall]).}}
+\highlight{\parbox{\textwidth}{(5.28) --- a non-constant library call ([defns.nonconst.libcall]).}}
 
 
 \subsection{Modification to ``The C standard library'' [library.c]}
@@ -558,7 +559,7 @@ to the extent applicable to the floating-point types ([basic.fundamental]) that 
 types of the called function.
 [Note: Annex F specifies the conditions under which floating-point exceptions are raised and the behavior when NaNs and/or infinities
 are passed as arguments.]
-[Note: Equivalently, a call to a C standard library function is a non-constant subexpression if \code{errno} is set when \code{math\_errhandling \& MATH\_ERRNO} is \code{true}.] }}
+[Note: Equivalently, a call to a C standard library function is a non-constant library call if \code{errno} is set when \code{math\_errhandling \& MATH\_ERRNO} is \code{true}.] }}
 
 
 \subsection{Modifications to ``Header \header{version} synposis'' [version.syn]}
