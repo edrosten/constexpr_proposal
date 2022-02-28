@@ -5,6 +5,7 @@
 \usepackage{color}
 \usepackage{soul}
 \usepackage{fancyvrb}
+\usepackage{epsfig}
 
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
@@ -106,6 +107,13 @@ Let us deal with these in turn. A crucial point to make, which motivates much of
 
 The key shift in perspective that we propose is to stop thinking of floating-point numbers as simply numbers, and to instead consider them as {\it labels}. In particular, consider the real numbers, $\mathbf{R}^1$. Next define a sequence of overlapping open sets which cover the entire real number line (excluding $\pm \infty$). The open sets are called charts and the union of these charts is an atlas. Each individual chart, $C_{x_n}$, holds within it a single floating-point number, $x_n$, which may be considered its label. The subscript $n$ is used for convenience to index the floating-point numbers. This is ordered such that the next floating-point number is $x_{n+1}$. Each number is assumed to be unique and so $\pm 0$ are taken to be the same. The closure of 
 $C_{x_n}$ includes the numbers $x_{n-1}$ and $x_{n+1}$ (which may be $\pm \infty$). Thus, each chart goes up to be doesn't quite touch the numbers on either side.
+\begin{figure}[h]
+\begin{center}
+\input{figs/NumberLine.pdf_t}
+\caption{caption here}
+\label{figure:R1}
+\end{center}
+\end{figure}
 
 The next step is to consider a function of a single floating-point argument, $f$, \ie\ a function which maps $\mathbf{R}^1$ into itself. This procedure can be straightforwardly extended to $\mathbf{R}^d$ for functions of $d$ arguments. If the function is analytic within $C_{x_n}$, then this open set will be mapped into some other open set of $\mathbf{R}^1$, denoted $D^{f(x_n)}$. By construction, the intersection of $D^{f(x_n)}$ with the charts, $C$, is non-empty. Indeed, $D^{f(x_n)}$ intersects at least one chart, and in the case there are several they must have consecutive labels. In this manner, we can instead think of the function as mapping one label, $x_n$, into a set of labels $\{x_{m}\}$, where the set is non-empty, and the elements are consecutive.
 

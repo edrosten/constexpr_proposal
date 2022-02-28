@@ -1,5 +1,5 @@
 .*.swp
-*.pdf
+.pdf
 *.log
 *.aux
 *.bib
@@ -8,5 +8,6 @@
 *.bbl
 *.blg
 *.out
+*.bak
 .DS_Store
 src/constexpr_sqrt
