@@ -13,6 +13,8 @@
 \newcommand{\complex}{\header{complex}}
 \newcommand{\cstdlib}{\header{cstdlib}}
 
+\newcommand{\ie}{i.e.}
+
 \newcommand{\FEINVALID}{{\tt FE\_INVALID}}
 \newcommand{\FEDIVBYZERO}{{\tt FE\_DIVBYZERO}}
 \newcommand{\FEINEXACT}{{\tt FE\_INEXACT}}
@@ -80,6 +82,11 @@ Since its inception, \constexpr\ has become an invaluable ingredient in compile-
 
 This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to significantly expand the number of functions in \cmath\ (and also \complex) which may be used in a \constexpr context. The potential utility of this is noteworthy. However, it is clear that there are new hurdles to overcome: floating-point is very subtle and different people may want implementations to prioritize different things~\cite{Timmons-Less}. In other words, there is a non-trivial design space. Crudely, should implementations of floating-point functions be fast, or should they be accurate? There is no definitive answer to this since it depends on the circumstance and interests of the particular user. One of the key components to this paper is to propose a mathematical framework sufficiently flexible to represent this design space, thereby making it amenable to standardization.
 
+Given our belief that rendering more functions within \cmath\ is useful, we seek to adhere to one of the core principles of C++~\cite{DandE}:
+\begin{quote}
+	It is more important to allow a useful feature than to prevent every misuse.
+\end{quote}
+
 \section{Motivation \& Scope}
 
 Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which it was arguably perverse to have been unavailable for compile-time computation for as long as they were. Indeed, between~\cite{AP-complex} and~\cite{Rosten-constexpr} being adopted, the situation was actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify this, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
@@ -95,9 +102,48 @@ There are two related concerns to the goal of this paper:
 	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
 \end{enumerate}
 
-Let us deal with these in turn. A crucial point to make, which motivates much of what follows, is that it is not straightforward to define what one means by correct rounding of a mathematical function, due to the peculiarities of floating-point numbers. Consider two examples at opposite extremes. On the one hand, if multiplying a number by two produced something off by the last bit, this would be highly concerning! On the other, what does it mean for something like \code{std::sin(1e100)} to be correctly rounded? Whilst it is of course true that there is an unambiguous result to this call, we may well wonder how meaningful it is, since shifting the argument by a tiny amount can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of \code{1e100} is such that the output of \code{std::sin} sweeps across its entire range many times as we go from one input to the next available one. In this sense there is a fuzziness to floating-point numbers. We now put in place a framework to allow a rigorous treatment of these issues.
+Let us deal with these in turn. A crucial point to make, which motivates much of what follows, is that it is not straightforward to define what one means by correct rounding of a mathematical function, due to the peculiarities of floating-point numbers. Consider two examples at opposite extremes. On the one hand, if multiplying a number by two produced something off by the last bit, this would be highly concerning! On the other, what does it mean for something like \code{std::sin(1e100)} to be correctly rounded? Whilst it is of course true that there is an unambiguous result to this call, we may well wonder how meaningful it is, since shifting the argument by a tiny amount can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of \code{1e100} is such that $\sin x$ sweeps across its entire range from $-1$ to $+1$ many times as we go from one floating-point input to the next available one. In this sense there is a fuzziness to floating-point numbers. We now put in place a framework to allow a rigorous treatment of these issues.
 
-The key shift in perspective that we propose is to stop thinking of floating-point numbers as simply numbers, and to instead consider them as {\it labels}. In particular, consider the real numbers, $\mathbf{R}^1$. Next define a sequence of overlapping open sets which cover the entire real number line (excluding $\pm \infty$). The open sets are called charts and the union of these charts is an atlas. Each individual chart, $C_n$, holds within it a single floating-point number, $n$, which may be considered its label. 
+The key shift in perspective that we propose is to stop thinking of floating-point numbers as simply numbers, and to instead consider them as {\it labels}. In particular, consider the real numbers, $\mathbf{R}^1$. Next define a sequence of overlapping open sets which cover the entire real number line (excluding $\pm \infty$). The open sets are called charts and the union of these charts is an atlas. Each individual chart, $C_{x_n}$, holds within it a single floating-point number, $x_n$, which may be considered its label. The subscript $n$ is used for convenience to index the floating-point numbers. This is ordered such that the next floating-point number is $x_{n+1}$. Each number is assumed to be unique and so $\pm 0$ are taken to be the same. The closure of 
+$C_{x_n}$ includes the numbers $x_{n-1}$ and $x_{n+1}$ (which may be $\pm \infty$). Thus, each chart goes up to be doesn't quite touch the numbers on either side.
+
+The next step is to consider a function of a single floating-point argument, $f$, \ie\ a function which maps $\mathbf{R}^1$ into itself. This procedure can be straightforwardly extended to $\mathbf{R}^d$ for functions of $d$ arguments. If the function is analytic within $C_{x_n}$, then this open set will be mapped into some other open set of $\mathbf{R}^1$, denoted $D^{f(x_n)}$. By construction, the intersection of $D^{f(x_n)}$ with the charts, $C$, is non-empty. Indeed, $D^{f(x_n)}$ intersects at least one chart, and in the case there are several they must have consecutive labels. In this manner, we can instead think of the function as mapping one label, $x_n$, into a set of labels $\{x_{m}\}$, where the set is non-empty, and the elements are consecutive.
+
+How does all of this abstract machinery relate to floating-point functions on real hardware? We define a \emph{conforming} floating-point implementation of the function, $f$, to be a projection from $\{x_{m}\}$ to a single element of this set. This projection will depend on many things: the precise implementation of $f$, the optimization used, the compiler flags used (such as \code{-ffast-math}), the rounding mode and the hardware. However, the idea is that every element of the set $\{x_{m}\}$ should be considered equally valid. Some examples may clarify this.
+
+First, consider taking a number which has an exact floating-point representation and multiplying it by two.
+In this case, $\{x_{m}\}$ comprises just a single entry and our prescription demands an exact calculation. Secondly, take the example of $sin(1e100)$. In this case, $\{x_{m}\}$ comprises all charts labelled by every representable number within the range $-1 \leq y \leq 1$. Our prescription states that every one of these numbers is an equally valid output from a conforming implementation. This chimes with our intuition of how to make sense of \code{std::sin(1e100)}.
+
+What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and indeed already happens in practice. But what we have done is to put limits on how answers may diverge, at least for conforming implementations.
+
+But wait! Won't all of this mean people can do things like this?
+\begin{verbatim}
+template<bool B>
+struct do_stuff
+{
+  static void execute() {}
+};
+
+template<>
+struct do_stuff<true>
+{
+  static void execute() { destroy_the_universe(); }
+};
+
+// Do I feel lucky?
+do_stuff<static_cast<bool>(std::sin(1e100))>::execute();
+\end{verbatim}
+
+The answer is: yes, things like this will be possible. However, we believe that the utility of
+rolling out \constexpr\ to touch more of \cmath\ outweighs the fact that it may be abused.
+
+As to whether it is really acceptable for mathematical functions to give different results in different
+contexts, again our answer is yes. The above framework we introduced hopefully makes it clear
+that floating-point numbers are inherently fuzzy and that it is, in many cases, useful to embrace
+this fuzziness. That being said, there are cases where people may want a mathematical function
+to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
+perhaps introduces new types. It is worth pointing out that Java gives a good idea of what this
+looks like.
 
 
 {\bf etc}
@@ -217,6 +263,8 @@ Ultimately it would be desirable to extend \constexpr\ to some, if not all, of t
 	\bibitem[P0533]{Rosten-constexpr} Edward J.~Rosten and Oliver J.~Rosten, \constexpr\ for \cmath\ and \cstdlib.
 
 	\bibitem[P2337]{Timmons-Less} Nicholas G. Timmons, Less \constexpr\ for \cmath.
+	
+	\bibitem[D\&E]{DandE} Bjarne Stroustrup, The Design and Evolution of C++.
 
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
 	
