@@ -97,6 +97,8 @@ There are two related concerns to the goal of this paper:
 
 Let us deal with these in turn. A crucial point to make, which motivates much of what follows, is that it is not straightforward to define what one means by correct rounding of a mathematical function, due to the peculiarities of floating-point numbers. Consider two examples at opposite extremes. On the one hand, if multiplying a number by two produced something off by the last bit, this would be highly concerning! On the other, what does it mean for something like \code{std::sin(1e100)} to be correctly rounded? Whilst it is of course true that there is an unambiguous result to this call, we may well wonder how meaningful it is, since shifting the argument by a tiny amount can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of \code{1e100} is such that the output of \code{std::sin} sweeps across its entire range many times as we go from one input to the next available one. In this sense there is a fuzziness to floating-point numbers. We now put in place a framework to allow a rigorous treatment of these issues.
 
+The key shift in perspective that we propose is to stop thinking of floating-point numbers as simply numbers, and to instead consider them as {\it labels}. In particular, consider the real numbers, $\mathbf{R}^1$. Next define a sequence of overlapping open sets which cover the entire real number line (excluding $\pm \infty$). The open sets are called charts and the union of these charts is an atlas. Each individual chart, $C_n$, holds within it a single floating-point number, $n$, which may be considered its label. 
+
 
 {\bf etc}
 
