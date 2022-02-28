@@ -82,11 +82,21 @@ This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to sign
 
 \section{Motivation \& Scope}
 
-Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which it was arguably perverse to have be unavailable for compile-time computation for as long as they were. Indeed, between~\cite{AP-complex} and~\cite{Rosten-constexpr} being adopted, the situation was actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify this, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
+Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which it was arguably perverse to have been unavailable for compile-time computation for as long as they were. Indeed, between~\cite{AP-complex} and~\cite{Rosten-constexpr} being adopted, the situation was actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify this, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
 
 The broad strategy of~\cite{Rosten-constexpr} is to focus on those functions which are, in a well-defined sense, no more complicated than the arithmetic operators \Operators; the rationale for this being that the latter are already available in a \constexpr\ context.
 As~\cite{Rosten-constexpr} proceeded through the standardisation process, LEWG expressed a desire 
-to extend the scope to include a significant amount of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}. However, later discussion crystalized in~\cite{Timmons-Less} revealed significant concerns. Our hope is that these concerns can be overcome. Note, though, that in terms of scope it seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.
+to extend the scope to include a significant amount of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}. However, later discussion---crystalized in~\cite{Timmons-Less}---revealed significant concerns. Our hope is that these concerns can be overcome. Note, though, that in terms of scope it seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.
+
+There are two related concerns to the goal of this paper:
+\begin{enumerate}
+	\item Implementations of certain functions in \cmath\ do not produce results which are `correctly' rounded to the last bit.
+	
+	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
+\end{enumerate}
+
+Let us deal with these in turn. A crucial point to make, which motivates much of what follows, is that it is not straightforward to define what one means by correct rounding of a mathematical function, due to the peculiarities of floating-point numbers. Consider two examples at opposite extremes. On the one hand, if multiplying a number by two produced something off by the last bit, this would be highly concerning! On the other, what does it mean for something like \code{std::sin(1e100)} to be correctly rounded? Whilst it is of course true that there is an unambiguous result to this call, we may well wonder how meaningful it is, since shifting the argument by a tiny amount can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of \code{1e100} is such that the output of \code{std::sin} sweeps across its entire range many times as we go from one input to the next available one. In this sense there is a fuzziness to floating-point numbers. We now put in place a framework to allow a rigorous treatment of these issues.
+
 
 {\bf etc}
 
