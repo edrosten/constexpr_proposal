@@ -75,7 +75,6 @@ In~\cite{Rosten-constexpr}, a scattering of $\constexpr$, principally throughout
 
 
 \maketitle
-
 \tableofcontents
 
 \section{Introduction}
@@ -91,20 +90,30 @@ Given our belief that declaring more functions within \cmath\ to be \constexpr\ 
 
 \section{Motivation \& Scope}
 
+\subsection{Initial Motivation \& Concerns}
+
 Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which it was arguably perverse for them to have been unavailable for compile-time computation for as long as they were. Indeed, between~\cite{AP-complex} and~\cite{Rosten-constexpr} being adopted, the situation was actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify the situation, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
 
 The broad strategy of~\cite{Rosten-constexpr} is to focus on those functions which are, in a well-defined sense, no more complicated than the arithmetic operators \Operators; the rationale for this being that the latter are already available in a \constexpr\ context.
 As~\cite{Rosten-constexpr} proceeded through the standardisation process, LEWG expressed a desire 
-to extend the scope to include a significant amount of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}. However, later discussion---crystalized in~\cite{Timmons-Less}---revealed significant concerns. Our hope is that these concerns can be overcome. Note, though, that in terms of scope it seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.
+to extend the scope to include a significant amount of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}. However, later discussion---crystalized in~\cite{Timmons-Less}---revealed significant concerns. Our hope is that these concerns can be overcome. Attempting to do so has broadened the scope of this proposal to include a new framework for conceptualizing floating-point computation.
+Note, though, that in terms of scope it seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.
 
-There are two related concerns to the goal of this paper:
+There are two related concerns to the goal of this paper to declare more functions in \cmath\ to be \constexpr:
 \begin{enumerate}
 	\item Implementations of certain functions in \cmath\ do not produce results which are `correctly' rounded to the last bit.
 	
 	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
 \end{enumerate}
 
-A crucial point to make, which motivates much of what follows, is that it is not straightforward to define what one means by correct rounding of a mathematical function, due to the peculiarities of floating-point numbers. Consider two examples at opposite extremes. On the one hand, if multiplying a number exactly representable as a floating-point number by two produced something off by the last bit, this would be highly concerning! On the other, what does it mean for something like \code{std::sin(1e100)} to be correctly rounded? Whilst it is of course true that there is an unambiguous result to $\sin 1\mathrm{e}100$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of $1\mathrm{e}100$ is such that $\sin x$ sweeps across its entire range from [-1,+1] many times as we go from one floating-point input to the next available one. In this sense there is a fuzziness to floating-point numbers. We now put in place a framework to allow a rigorous treatment of these issues.
+\subsection{A Conceptual Framework}
+
+\subsubsection{Preamble}
+
+A crucial point to make, which motivates much of what follows, is that it is not straightforward to define what one means by correct rounding of a mathematical function, due to the peculiarities of floating-point numbers. Consider two examples at opposite extremes. On the one hand, if multiplying a number exactly representable as a floating-point number by two produced something off by the last bit, this would be highly concerning! On the other, what does it mean for something like \code{std::sin(1e100)} to be correctly rounded%
+\footnote{Thanks to Richard Smith for first bringing this example to our attention}? Whilst it is of course true that there is an unambiguous result to $\sin 1\mathrm{e}100$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of $1\mathrm{e}100$ is such that $\sin x$ sweeps across its entire range from [-1,+1] many times as we go from one floating-point input to the next available one. In this sense there is a fuzziness to floating-point numbers. We now put in place a framework to allow a rigorous treatment of these issues.
+
+\subsubsection{The Main Idea}
 
 The key shift in perspective that we propose is to stop thinking of floating-point numbers as simply numbers, and to instead consider them as {\it labels}. In particular, consider the real numbers, $\mathbf{R}^1$. Next define a sequence of overlapping open sets which cover the entire real number line (excluding $\pm \infty$). The open sets are called charts and the union of these charts is an atlas. Each individual chart, $C_{x_n}$, holds within it a single floating-point number, $x_n$, which may be considered its label. The subscript $n$ is used for convenience to index the floating-point numbers. This is ordered such that the next floating-point number is $x_{n+1}$. Each number is assumed to be unique and so $\pm 0$ are taken to be the same. The closure of 
 $C_{x_n}$ includes the numbers $x_{n-1}$ and $x_{n+1}$ (which may be $\pm \infty$). Thus, each chart goes up to be doesn't quite touch the numbers on either side. This is illustrated in \fig{R1}
@@ -122,19 +131,23 @@ The next step is to consider a function of a single floating-point argument, $f$
 \begin{figure}[h]
 \begin{center}
 \resizebox{25em}{!}{\input{Functions.pdf_t}}
-\caption{A function, analytic on the open set $C_{x_n}$, which maps it into the open set $D^{f(x_n)}$. The latter intersects with $C_{x_m}, \ldots, C_{x_{m+3}}$.}
+\caption{A function, analytic on the open set $C_{x_n}$, which maps it into the open set $D^{f(x_n)}$. The latter intersects with $C_{x_m}, \ldots, C_{x_{m+3}}$. In terms of sets of labels, the function can be considered to map the element $x_n$ into the set $\{x_m, \ldots, x_{m+3}\}$.}
 \label{fig:R2}
 \end{center}
 \end{figure}
 
-How does all of this abstract machinery relate to floating-point functions on real hardware? We define a \emph{conforming} floating-point implementation of the function, $f$, to be a projection from $\{x_{m}\}$ to a single element of this set. This projection will depend on many things: the precise implementation of $f$, the optimization used, the compiler flags used (such as \code{-ffast-math}), the rounding mode and the hardware. However, the idea is that every element of the set $\{x_{m}\}$ should be considered equally valid. Some examples may clarify this.
+How does all of this abstract machinery relate to floating-point functions on real hardware? We define a \emph{conforming} floating-point implementation of the function, $f$, to be a projection from $\{x_{m}, \ldots\}$ to a single element of this set. This projection will depend on many things: the precise implementation of $f$, the optimization used, the compiler flags used (such as \code{-ffast-math}), the rounding mode and the hardware. However, the idea is that every element of the set $\{x_{m}\}$ should be considered equally valid. Some examples may clarify this.
 
 First, consider taking a number which has an exact floating-point representation and multiplying it by two.
-In this case, $\{x_{m}\}$ comprises just a single entry and our prescription demands an exact calculation. Secondly, take the example of \code{sin(1e100)}. In this case, $\{x_{m}\}$ comprises all charts labelled by every representable number within the range $-1 \leq y \leq 1$. Our prescription states that every one of these numbers is an equally valid output from a conforming implementation. This puts our earlier intuition on a firm footing.
+In this case, $\{x_{m}, \ldots\}$ comprises just a single entry and our prescription demands an exact calculation. Secondly, take the example of \code{sin(1e100)}. In this case, $\{x_{m}, \ldots\}$ comprises all charts labelled by every representable number within the range $-1 \leq y \leq 1$. Our prescription states that every one of these numbers is an equally valid output from a conforming implementation. This puts our earlier intuition on a firm footing.
 
-{\bf TO DO: singularities}
+\subsubsection{Singularities}
 
-What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and indeed already happens in practice. But what we have done is to put limits on how answers may diverge, at least for conforming implementations.
+{\bf TO DO}
+
+\subsection{Implications}
+
+What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and indeed already happens in practice. But what we have done is to put limits on how answers may diverge, at least for conforming implementations.
 
 But wait! Won't all of this mean people can do things like this?
 \begin{verbatim}
