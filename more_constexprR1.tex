@@ -143,6 +143,9 @@ In this case, $\{x_{m}, \ldots\}$ comprises just a single entry and our prescrip
 
 \subsubsection{Singularities}
 
+There are two types of singularities to consider: those arising for inputs that are/are not exactly representable as a floating-point number. An example of the former is $\ln 0$. An example of the latter is $\tan \pi/2$. Both can be incorporated into our framework in a similar way. Any number on the real line will appear in either one of the $C_{x_n}$ or in two: it appears in one if the number is exactly representable as a floating-point number and two, otherwise. Regardless, the next step is to introduce new open sets by copying those charts in which a singular point of the function, $f$, occurs and deleting said point. Each open set for which this is done spawns a pair of open sets for which the function is now analytic. Under the action of $f$, these open sets are now mapped into open sets. To complete the construction, the partial closure of these mapped sets is considered by reinstating the singular point. This is illustrated in \fig{Singular}, which nicely illustrates how the procedure captures the fact that $\tan \pi/2$ can be either $\pm \infty$, depending on the direction from which the singularity is approached.
+
+
 {\bf TO DO}
 
 \subsection{Implications}
