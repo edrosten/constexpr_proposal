@@ -156,9 +156,10 @@ The rest of the prescription described above now follows, almost exactly as befo
 
 \subsection{Implications}
 
-What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and indeed already happens in practice. But what we have done is to put limits on how answers may diverge, at least for conforming implementations.
+What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and indeed already happens in practice. This is due, amongst other things, to the ability to change the rounding mode and runtime. But what we have done is to put limits on how answers may diverge, at least for conforming implementations.
 
-But wait! Won't all of this mean people can do things like this?
+Furthermore, it is conceivable that different platforms may in some circumstance generate radically
+different code. For example, it will be possible to do things like this:
 \begin{verbatim}
 template<double D>
 struct do_stuff
@@ -176,17 +177,12 @@ struct do_stuff<0.5>
 do_stuff<std::sin(1e100)>::execute();
 \end{verbatim}
 
-The answer is: yes, things like this will be possible. However, we believe that the utility of
-rolling out \constexpr\ to touch more of \cmath\ outweighs the fact that it may be abused.
-As for whether certain results may come as a surprise to users, again that is true. But that
+However, we believe that the utility of rolling out \constexpr\ to touch more of \cmath\ outweighs the fact that it may be abused, bringing us back to the core principle cited in the introduction, from~\cite{DandE}.
+As for whether certain results may come as a surprise to users, again this is true. But that
 is true of floating-point, period. It is a difficult, subtle area of programming fraught with difficulty
 due to its frequently counter-intuitive nature.
 
-As to whether it is really acceptable for mathematical functions to give different results in different
-contexts, again our answer is yes. The above framework we introduced hopefully makes it clear
-that floating-point numbers are inherently fuzzy and that it is, in many cases, useful to embrace
-this fuzziness. That being said, there are cases where people may want a mathematical function
-to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
+One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. The above framework hopefully makes it clear that floating-point numbers are inherently fuzzy and that it is, in many cases, useful to embrace this fuzziness. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
 perhaps introduces new types. It is worth pointing out that Java gives a good idea of what this
 may look like.
 
