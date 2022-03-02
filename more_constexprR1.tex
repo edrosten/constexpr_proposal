@@ -24,8 +24,8 @@
 \newcommand{\FLTRADIX}{{\tt FLT\_RADIX}}
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
-\newcommand{\highlight}[1]{{\color{green} #1}}
-\newcommand{\oldhighlight}[1]{{\color{blue} #1}}
+\newcommand{\highlight}[1]{\colorbox{green}{\!\!\!\! #1}}
+\newcommand{\oldhighlight}[1]{\colorbox{blue}{\!\!\!\! #1}}
 \newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
@@ -245,17 +245,19 @@ The key design decision advocated in this paper is that it is acceptable for eva
 \begin{enumerate}
 	\item Allowing a broader range of mathematical functions to be used within constant expressions is useful.
 	
-	\item Since the advent of \constexpr\ the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed.
+	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed.
 	
 	\item Even without \constexpr, current practice has long allowed for differences between translation time and runtime. For example, optimization may emit code which entirely bypasses calls to the C library, instead generating results at translation time.
 	
-	
+	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to describe a rigorous framework which can both accommodate existing practice and allow for extensions.
 \end{enumerate}
 
 
 \section{Impact On the Standard}
 
-This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath, together with a smattering in \complex. It may be possible to do this as a pure library extension if use is made of~\cite{ConstEval} but even without this it is hoped for the burden on compiler vendors to be minimal.
+This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath, together with a smattering in \complex.
+
+{\bf TO DO:} Should a distillation of \sect{Motivation} be standardized, or could this paper be used as a reference point for QoI?
 
 \section{Future Directions}
 
@@ -275,11 +277,8 @@ Ultimately it would be desirable to extend \constexpr\ to some, if not all, of t
 	\bibitem[D\&E]{DandE} Bjarne Stroustrup, The Design and Evolution of C++.
 
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
-	
-	\bibitem[P0595]{ConstEval} Richard Smith, Andrew Sutton and Daveed Vandevoorde, \code{std\!::\!is\_constant\_evaluated()}.
-	
-	\bibitem[N4791]{WorkingPaper} Richard Smith, ed., Working Draft, Standard for Programming Language C++.	
-	
+		
+	\bibitem[N4901]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
 \end{thebibliography}
 
 \newpage
