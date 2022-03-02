@@ -128,7 +128,7 @@ $C_{x_n}$ includes the numbers $x_{n-1}$ and $x_{n+1}$ (which may be $\pm \infty
 \end{center}
 \end{figure}
 
-The next step is to consider a function of a single floating-point argument, $f$, \ie\ a function which maps $\mathbf{R}^1$ into itself. This procedure can be straightforwardly extended to $\mathbf{R}^d$ for functions of $d$ arguments. If the function is analytic within $C_{x_n}$, then this open set will be mapped into some other open set of $\mathbf{R}^1$, denoted $D^{f(x_n)}$. By construction, the intersection of $D^{f(x_n)}$ with the charts, $C$, is non-empty. Indeed, $D^{f(x_n)}$ intersects at least one chart, and in the case there are several they must have consecutive labels. In this manner, we can instead think of the function as mapping one label, $x_n$, into a set of labels $\{x_{m}\}$, where the set is non-empty, and the elements are consecutive. This is illustrated in \fig{Function}.
+The next step is to consider a function of a single floating-point argument, $f$, \ie\ a function which maps $\mathbf{R}^1$ into itself. This procedure can be straightforwardly extended to $\mathbf{R}^d$ for functions of $d$ arguments. If the function is analytic within $C_{x_n}$, then this open set will be mapped into some other open set of $\mathbf{R}^1$, denoted $D^{f(x_n)}$. By construction, the intersection of $D^{f(x_n)}$ with the charts, $C$, is non-empty. Indeed, $D^{f(x_n)}$ intersects at least one chart, and in the case there are several they must have consecutive labels. In this manner, we can instead think of the function as mapping one label, $x_n$, into a set of labels $\{x_{m}, \ldots\}$, where the set is non-empty, and the elements are consecutive. This is illustrated in \fig{Function}.
 
 \begin{figure}[h]
 \begin{center}
@@ -138,14 +138,14 @@ The next step is to consider a function of a single floating-point argument, $f$
 \end{center}
 \end{figure}
 
-How does all of this abstract machinery relate to floating-point functions on real hardware? We define a \emph{conforming} floating-point implementation of the function, $f$, to be a projection from $\{x_{m}, \ldots\}$ to a single element of this set. This projection will depend on many things: the precise implementation of $f$, the optimization used, the compiler flags used (such as \code{-ffast-math}), the rounding mode and the hardware. However, the idea is that every element of the set $\{x_{m}\}$ should be considered equally valid. Some examples may clarify this.
+How does all of this abstract machinery relate to floating-point functions on real hardware? We define a \emph{conforming} floating-point implementation of the function, $f$, to be a projection from $\{x_{m}, \ldots\}$ to a single element of this set. This projection will depend on many things: the precise implementation of $f$, the optimization used, the compiler flags used (such as \code{-ffast-math}), the rounding mode and the hardware. However, the idea is that every element of the set $\{x_{m}, \ldots\}$ should be considered equally valid. Some examples may clarify this.
 
 First, consider taking a number which has an exact floating-point representation and multiplying it by two.
 In this case, $\{x_{m}, \ldots\}$ comprises just a single entry and our prescription demands an exact calculation. Secondly, take the example of \code{sin(1e100)}. In this case, $\{x_{m}, \ldots\}$ comprises all charts labelled by every representable number within the range $-1 \leq y \leq 1$. Our prescription states that every one of these numbers is an equally valid output from a conforming implementation. This puts our earlier intuition on a firm footing.
 
 \subsubsection{Singularities}
 
-There are two types of singularities to consider: those arising from arguments that are/are not exactly representable as a floating-point number. An example of the former is $\ln 0$. An example of the latter is $\tan \pi/2$. Both can be incorporated into our framework in a similar way. Any number on the real line will appear in either one of the $C_{x_n}$ or in two: it appears in one if the number is exactly representable as a floating-point number and two, otherwise. Regardless, the next step is to introduce new open sets by copying those charts in which a singular point of the function, $f$, occurs and deleting said point. Each open set for which this is done spawns a pair of open sets in which the function is now analytic. Under the action of $f$, these open sets are now mapped into open sets. To complete the construction, the partial closure of these mapped sets is considered by reinstating the singular point. This is illustrated in \fig{Singularity}, which nicely illustrates how the procedure captures the fact that $\tan \pi/2$ can be either $\pm \infty$, depending on the direction from which the singularity is approached.
+There are two types of singularities to consider: those arising from arguments that are/are not exactly representable as a floating-point number. An example of the former is $\ln 0$. An example of the latter is $\tan \pi/2$. Both can be incorporated into our framework in a similar way. Any number on the real line will appear in either exactly one of the $C_{x_n}$ or in exactly two: it appears in one if the number is exactly representable as a floating-point number and two, otherwise. Regardless, the next step is to introduce new open sets by copying those charts in which a singular point of the function, $f$, occurs and deleting said point. Each open set for which this is done spawns a pair of open sets in which the function is now analytic. Under the action of $f$, these open sets are now mapped into open sets. To complete the construction, the partial closure of these mapped sets is considered by reinstating the singular point. This is illustrated in \fig{Singularity}, which nicely illustrates how the procedure captures the fact that $\tan \pi/2$ can be either $\pm \infty$, depending on the direction from which the singularity is approached.
 \begin{figure}[h]
 \begin{center}
 \resizebox{25em}{!}{\input{Singularity.pdf_t}}
@@ -154,7 +154,7 @@ There are two types of singularities to consider: those arising from arguments t
 \end{center}
 \end{figure}
 
-The rest of the prescription described above now follows, almost exactly as before. The only difference is that the $D^{f_{x_n}}$ may now contain two disjoint, but individually consecutive, sequences.
+The rest of the prescription described above now follows, almost exactly as before. The only difference is that the $D^{(f_{x_n})}$ may now contain two disjoint, but individually consecutive, sequences.
 
 \subsection{Implications}
 
