@@ -189,13 +189,19 @@ may look like.
 
 \section{State of the Art and Impact on Implementers}
 
-With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), gcc renders everything in \cmath\ \constexpr. While, on the one hand, \cite{Rosten-constexpr} goes beyond gcc by proposing the functions such as
-\[
-	\mbox{\code{float modf(float value, float* iptr)}}
-\]
-are constexpr, on the other it is more conservative since functions such as \code{exp} are excluded. This paper removes restrictions of the latter type.
+\subsection{Generalities}
 
-Though clang does not have \constexpr implementations, it does perform compile time evaluation of many mathematical functions (but not the special functions) during optimisation. The existence of compile time evaluation in GCC and clang demonstrates that implementation of this proposal is feasible.
+With the exception of the special functions [sf.cmath], functions taking a pointer argument and those with an explicit dependence on the runtime rounding mode (see section~\ref{sec:rounding}), GCC currently renders almost everything in \cmath\ \constexpr. Though clang does not have \constexpr implementations, it does perform compile time evaluation of many mathematical functions (but not the special functions) during optimisation. The existence of compile time evaluation in GCC and clang demonstrates that implementation of this proposal is plausibly feasible.
+
+Nevertheless, even for GCC's implementation of the relatively simple functions which~\cite{Rosten-constexpr} declares \constexpr, there are subtleties. In particular GCC is not entirely consistent with the way in which it presently deals with NaNs and/or infinities when they are passed as arguments to various mathematical functions. The solution advocated by~\cite{Rosten-constexpr} is that, wherever possible, the C++ Standard defers to Annex F of the C Standard. This precisely defines when floating-point exceptions should be raised, and how NaNs and infinities should be treated. Regarding the former, raising anything other than \FEINEXACT\ renders a call non-constant.
+
+\subsection{Garbage in, Garbage out}
+
+{\bf TO DO:} hardware which gives e.g.\ $\code{sin 1e100} = 1e100$
+
+\subsection{Conformance}
+
+{\bf TO DO:} how tenable is it to test conformance of an implementation?
 
 
 \section{Design Decisions}
