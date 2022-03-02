@@ -30,7 +30,7 @@
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
 \newcommand{\fig}[1]{figure~\ref{fig:#1}}
-\newcommand{\sect}[1]{section~\ref{eq:#1}}
+\newcommand{\sect}[1]{section~\ref{sec:#1}}
 
 \newcommand{\bigund}{{\Huge{\_}}}
 
@@ -240,50 +240,17 @@ Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly
 
 \section{Design Decisions}
 
-The parent paper~\cite{Rosten-constexpr} identifies two crucial issues that must be understood when rolling out \constexpr\ in \cmath: namely error flags and the rounding mode. It is, however, well worth emphasising that these issues must have been confronted when allowing \Operators\ to be used in \constexpr\ contexts. Therefore, it would be most disconcerting if this were to provide a barrier to rolling out \constexpr\ in \cmath; nevertheless, both error flags and rounding mode are worthy of a proper discussion, which interested readers may find in~\cite{Rosten-constexpr}. The next two subsections summarise the key points, after which we discuss the subtle issue of the interaction with the C runtime library. Finally, the key proposal of this paper is given.
+The key design decision advocated in this paper is that it is acceptable for evaluation of a mathematical function to differ between translation time and runtime, but only if this difference falls within the precise scheme described in \sect{Motivation}. Let us recapitulate the various points.
 
-\subsection{Global Flags}
-
-There are various scenarios under which certain functions in \cmath\ may set \code{errno} and/or raise exception flags, \FEDIVBYZERO, \FEINVALID, \FEOVERFLOW, \FEUNDERFLOW\ and
-\FEINEXACT. Drawing on the behaviour of \Operators\ for inspiration, the proposal of~\cite{Rosten-constexpr} is as follows:
-\begin{quotation}
-	Functions declared \constexpr, \emph{when used in a \constexpr
-context}, should give a compiler error if division by zero, domain errors or
-overflows occur. When not used in a \constexpr context, the various global
-flags should be set as normal.
-\end{quotation}
-At first sight, the distinction between these two contexts implies that many functions in \cmath\ may not be declared \constexpr\ as a pure library implementation. This is by no means the end of the world; however, the advent of \code{std::is\_constant\_evaluated()}~\cite{ConstEval}
-may mean that a pure library implementation is possible.
-
-\subsection{Rounding Mode}
-\label{sec:rounding}
-
-To facilitate discussion, \cite{Rosten-constexpr} defines two types of rounding-mode dependence: weak and strong. To illustrate weak dependence, consider
-\begin{equation}
-	\mbox{\code{constexpr double x\{10.0/3.0\}}}.
-\label{eq:10/3}
-\end{equation}
-As an artefact of the limited precision of floating-point arithmetic, the answer depends on the rounding mode. However, this does not stop us from making definitions such as~\eq{10/3}. Therefore, functions  within \cmath\ that exhibit such weak dependence are not ruled out from being declared \constexpr.
-
-This should be contrasted with strong dependence, which may be effectively illustrated by considering \code{float nearbyint(float x)}. The whole point of this function is to round depending on the runtime rounding mode, which may in principle be changed throughout a program's execution. It was therefore decided in~\cite{Rosten-constexpr} to exclude functions with strong dependence from being declared \constexpr\ and this paper does not overturn that.
-
-
-\subsection{Conditions for \constexpr}
-
-The conclusion of~\cite{Rosten-constexpr} was that two conditions may be used to systematically choose which functions in \cmath\ should be declared \constexpr. We reproduce these here, striking out the original form of the first, since this paper proposes removing it as a restriction:
-
-\begin{proposal*}
-	A function in \cmath\ shall be declared \constexpr if and only if:
-	\begin{enumerate}
-		\item \st{When taken to act on the set of rational numbers, the function is closed (excluding division 
-		by zero);}
-		
-		The function does not belong to [sf.cmath];
-		
-		\item The function is not strongly dependent on the rounding mode.
-	\end{enumerate}
-\end{proposal*}
-
+\begin{enumerate}
+	\item Allowing a broader range of mathematical functions to be used within constant expressions is useful.
+	
+	\item Since the advent of \constexpr\ the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed.
+	
+	\item Even without \constexpr, current practice has long allowed for differences between translation time and runtime. For example, optimization may emit code which entirely bypasses calls to the C library, instead generating results at translation time.
+	
+	
+\end{enumerate}
 
 
 \section{Impact On the Standard}
