@@ -247,7 +247,7 @@ The key design decision advocated in this paper is that it is acceptable for eva
 	
 	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed.
 	
-	\item Even without \constexpr, current practice has long allowed for difference in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses calls to the C library, instead generating results at translation time. However, under other circumstance optimization, even if present, might not do this.
+	\item Even without \constexpr, current practice has long allowed for difference in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization---even if present---might not do this.
 	
 	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to describe a rigorous framework which can both accommodate existing practice and allow for extensions.
 \end{enumerate}
