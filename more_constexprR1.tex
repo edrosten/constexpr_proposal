@@ -138,6 +138,9 @@ There are several related concerns to the goal of this paper to declare more fun
 	is that even with a given level of (non-trivial) optimization, the same function in \cmath\ may give 
 	different answers, depending on the ambient \href{https://godbolt.org/z/js7rGvPbf}{code}.%
 	\footnote{Thanks to Matthias Kretz for supplying this example.}
+	
+	\item The output of certain functions in \cmath\ may differ when the same binary is executed on
+	different CPUs within the same architectural family.
 \end{enumerate}
 
 \subsection{A Conceptual Framework}
