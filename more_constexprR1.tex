@@ -151,7 +151,7 @@ The key shift in perspective proposed is to stop thinking of floating-point numb
 $C_{x_n}$ includes the numbers $x_{n-1}$ and $x_{n+1}$ (which may be $\pm \infty$). Thus, each chart goes up to be doesn't quite touch the numbers on either side. This is illustrated in \fig{R1}.
 
 The picture is somewhat reminiscent of Interval Arithmetic~\cite{Interval}, but with some key differences.
-First, as will be described, the goal is not to quantify rounding errors, as such. Rather, the goal is to provide a set of \emph{equally valid} answers to a floating-point computations in a sense which will be made precise. Secondly, rather than the closed intervals of Interval Arithmetic, we employ open sets in a way which will be familiar from elementary topolgy.
+First, as will be described, the goal is not to quantify rounding errors, as such. Rather, the goal is to provide a set of \emph{equally valid} answers to a floating-point computations in a sense which will be made precise. Secondly, rather than the closed intervals of Interval Arithmetic, we employ overlapping open sets in a way which will be familiar from elementary topology.
 
 \begin{figure}[h]
 \begin{center}
@@ -174,15 +174,14 @@ The next step is to consider a function of a single floating-point argument, $f$
 How does all of this abstract machinery relate to floating-point functions on real hardware? Given a function, $f$, denote a floating-point realization of this function by $F_I$, where the subscript parametrizes the precise implementation, the optimization used, the compiler flags used (such as \code{-ffast-math}), the hardware and anything else of relevance, except for the rounding mode. With this
 in mind, suppose that, as in \fig{Function}, $f$ maps $C_{x_n}$ into $D^{f(x_n)}$. A necessary
 condition for the realization, $F_I$, to be faithful is that, for every rounding mode, $F_I(x_n)$ yields
-one of the values of the set ${x_{m_n}, \ldots\}}$. Since this needs to be true for all $x_n$, the dependence of $m$ on $n$ has been explicitly indicated, whereas previously it was suppressed, for brevity.
+a value from the set $\{x_{m_n}, \ldots\}$. Since this needs to be true for all $x_n$, the dependence of $m$ on $n$ has been explicitly indicated, whereas previously it was suppressed, for brevity.
 
 Some examples may clarify this. First, consider taking a number which has an exact floating-point representation and multiplying it by two.
 In this case, $\{x_{m}, \ldots\}$ comprises just a single entry and our prescription demands an exact calculation. Secondly, take the example of \code{sin(1e100)}. In this case, $\{x_{m}, \ldots\}$ comprises all charts labelled by every representable number within the range $-1 \leq y \leq 1$. Our prescription states that every one of these numbers is an equally valid output from a faithful realization. This puts our earlier intuition on a firm footing.
 
-Note that above a necessary condition for a faithful realization was given, but it was not claimed to
+Note that a necessary condition for a faithful realization has been given, but it is not claimed to
 be sufficient. To understand why, observe in \fig{R1} that $C_{x_n}$ is perhaps twice a large as one
-might expect. Indeed, if $\mathbf{R}^1$ were to be divided into disjoint intervals, these intervals would typically be half the size. The origin of this is that $C_{x_n}$ holds all of the values that could collapse to $x_n$ when considering all rounding modes. But when a specific rounding mode is chosen, only part of this range will actually collapse to $C_{x_n}$. The sufficient condition for a realization to be faithful
-would need to take this into account, but this is not required for our purposes.
+might expect. Indeed, if $\mathbf{R}^1$ were to be divided into disjoint intervals, these intervals would typically be half the size. The origin of this is that $C_{x_n}$ holds all of the values that could collapse to $x_n$ when considering all rounding modes. But when a specific rounding mode is chosen, only part of this range will actually collapse to $C_{x_n}$, with other values collapsing to either $C_{x_{n+1}}$ or $C_{x_{n-1}}$. The sufficient condition for a realization to be faithful would need to take this into account, but this is not required for our purposes.
 
 \subsubsection{Singularities}
 
@@ -200,14 +199,14 @@ The rest of the prescription described above now follows, almost exactly as befo
 \subsubsection{QoI}
 
 There are many ways to define QoI. Here, the focus is on a definition which utilizes the necessary condition for a floating-point realization of a function to be faithful. As above, suppose that $f$
-maps $C_{x_n}$ into $D^{f(x_n)}$ and that a faithful realization, $F_I(x_n)$, always yields one of the values in the set ${x_{m_n}, \ldots, x_{r_n}\}}$, whatever the rounding mode. The game now is to check,
-for each $x_n$, whether this is true. The test fails is this violated for one of more rounding modes.
+maps $C_{x_n}$ into $D^{f(x_n)}$ and that a faithful realization, $F_I(x_n)$, always yields one of the values in the set $\{x_{m_n}, \ldots\}$, whatever the rounding mode. The game now is to check,
+for each $x_n$, whether this is true. The test fails if this violated for one of more rounding modes.
 The percentage of passing tests is a measure of the QoI.
 
 
 \subsection{Implications}
 
-What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and that differences have long occurred in practice. This is due, amongst other things, to the ability to change the rounding mode at runtime. But what we have done is to put limits on how answers may diverge, at least for faithful implementations.
+What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and that differences have long occurred in practice. 
 
 It is conceivable that this proposal may be abused, causing different platforms to generate radically
 different code. For example, it will be possible to do things like this:
@@ -344,6 +343,8 @@ Ultimately it would be desirable to extend \constexpr\ to some, if not all, of t
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
 		
 	\bibitem[N4901]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
+	
+	\bibitem[Kahan]{Interval} William Kahan. 2006. How Futile Are Mindless Assessments of Roundoff in Floating-Point Computation? Retrieved \today\ from \url{https://people.eecs.berkeley.edu/?wkahan/Mindless.pdf}.
 	
 	%\bibitem[Rudin 1976]{BabyRudin} Walter Rudin, Principles of Mathematical Analysis, 3rd Edition.
 \end{thebibliography}
