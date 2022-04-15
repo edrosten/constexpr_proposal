@@ -201,7 +201,10 @@ The rest of the prescription described above now follows, almost exactly as befo
 There are many ways to define QoI. Here, the focus is on a definition which utilizes the necessary condition for a floating-point realization of a function to be faithful. As above, suppose that $f$
 maps $C_{x_n}$ into $D^{f(x_n)}$ and that a faithful realization, $F_I(x_n)$, always yields one of the values in the set $\{x_{m_n}, \ldots\}$, whatever the rounding mode. The game now is to check,
 for each $x_n$, whether this is true. The test fails if this violated for one of more rounding modes.
-The percentage of passing tests is a measure of the QoI.
+The percentage of passing tests is a measure of the QoI, $\mathcal{Q}$.
+
+Compared to a refined scheme which does not aggregate the affects of the rounding mode, $\mathcal{Q}$
+can be considered an upper bound in the QoI.
 
 
 \subsection{Implications}
@@ -300,7 +303,7 @@ Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly
 
 \subsection{QoI}
 
-{\bf TO DO: numerical experiments with the major library implementation}
+{\bf TO DO: numerical experiments with the major library implementations}
 
 
 \section{Design Decisions}
@@ -312,7 +315,7 @@ The key design decision advocated in this paper is that it is acceptable for eva
 	
 	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed.
 	
-	\item Even without \constexpr, current practice has long allowed for difference in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization---even if present---might not do this.
+	\item Even without \constexpr, current practice has long allowed for difference in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization might not do this.
 	
 	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to describe a rigorous framework which can be used to understand existing practice in a non-prejudicial fashion and allow for extensions in the same spirit.
 \end{enumerate}
