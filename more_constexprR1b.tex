@@ -82,6 +82,7 @@ A scattering of $\constexpr$, principally throughout \cmath, was proposed in~\ci
 \tableofcontents
 
 \section{Introduction}
+\label{sec:Intro}
 
 Since its inception, \constexpr\ has become an invaluable ingredient in compile-time programming. Indeed, part of its appeal is that the sharp distinction between meta-programming and runtime programming has in many instances become blurred. The interest in \constexpr\ is reflected by the numerous papers proposing to increase the range of core language features and library functionality that may be used in a \constexpr\ context. As such, it is essential for the long-term uniformity of C++ that parts of the standard library are not left behind in this process.
 
@@ -125,8 +126,6 @@ This paper proposes standardization of the latter. To conclude the introduction,
 
 \section{Motivation \& Scope}
 \label{sec:Motivation}
-
-\subsection{Initial Motivation \& Concerns}
 
 Prior to~\cite{Rosten-constexpr}, no effort had been made to allow for functions in \cmath\ to be declared \constexpr; this despite there being glaring instances, such as \code{std::abs}, for which this was arguably perverse. Indeed, between~\cite{AP-complex} and~\cite{Rosten-constexpr} being adopted, the situation was actually been better for \complex\ than for \cmath! The aim of~\cite{Rosten-constexpr} was to at least partially rectify the situation, while recognizing that attempting to completely resolve this issue in a single shot was too ambitious.
 
@@ -179,18 +178,6 @@ is true of floating-point, period. It is a difficult, subtle area of programming
 due to its frequently counter-intuitive nature.
 
 Is it perfectly reasonable for people to want to generate a \constexpr\ lookup table for (say) \code{std::sin}. If they are operating in the domain where they do not care whether their values differ between platforms etc.\ is it really right that we continue to prohibit this entirely legitimate use-case, for fear of abuse of floating-point?
-
-\subsection{Statement of Intent}
-
-{\bf TO DO; subsume into design decisions?}
-
-What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and that differences have long occurred in practice. 
-
-
-One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. The above framework hopefully makes it clear that floating-point numbers are inherently fuzzy and that it is, in many cases, useful to embrace this fuzziness. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
-perhaps introduces new types. It is worth pointing out that Java gives a good idea of what this
-may look like.
-
 
 \section{State of the Art and Impact on Implementers}
 
@@ -267,9 +254,15 @@ The key design decision advocated in this paper is that it is acceptable for eva
 	\item Even without \constexpr, current practice has long allowed for difference in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization might not do this.
 	
 	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to support
-	a useful extension to existing practice in a non-prejudicial fashion, while no precluding 
+	a useful extension to existing practice in a non-prejudicial fashion, while not precluding 
 	orthogonal developments which may cater for a different range of use-cases.
 \end{enumerate}
+
+
+
+One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
+perhaps introduces new types. It is worth pointing out that Java gives a good idea of what this
+may look like.
 
 
 \section{Impact On the Standard}
@@ -278,7 +271,7 @@ This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath
 
 \section{Future Directions}
 
-It would be desirable for library vendors to quantify the QoI of mathematical functions, along the lines indicated earlier. Orthogonal to this, it is worth considering separate implementations of mathematical functions with strict guarantees on their outputs. Finally, it would be ultimately desirable to extend \constexpr\ to some, if not all, of the special functions. 
+It would be desirable for library vendors to quantify the QoI of mathematical functions, along the lines indicated in \sect{Intro}. Orthogonal to this, it is worth considering separate implementations of mathematical functions with strict guarantees on their outputs. Finally, it would be ultimately desirable to extend \constexpr\ to some, if not all, of the special functions. 
 
 
 \begin{acknowledgments}
@@ -295,7 +288,7 @@ It would be desirable for library vendors to quantify the QoI of mathematical fu
 
 	\bibitem[P0415R0]{AP-complex} Antony Polukhin, Constexpr for std::complex.	
 		
-	\bibitem[N4901]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
+	\bibitem[N4910]{WorkingPaper} Thomas K\"oppe, ed., Working Draft, Standard for Programming Language C++.	
 	
 	\bibitem[Kahan]{Interval} William Kahan. 2006. How Futile Are Mindless Assessments of Roundoff in Floating-Point Computation? Retrieved \today\ from \url{https://people.eecs.berkeley.edu/?wkahan/Mindless.pdf}.
 	
