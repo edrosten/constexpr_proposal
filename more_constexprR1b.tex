@@ -141,8 +141,6 @@ There are several related concerns to the goal of this paper to declare more fun
 \begin{enumerate}
 	\item Implementations of certain functions in \cmath\ do not produce results which are `correctly' rounded to the last bit.
 	
-	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
-	
 	\item The output of certain functions in \cmath\ may depend on the level of optimization; a corollary
 	is that even with a given level of (non-trivial) optimization, the same function in \cmath\ may give 
 	different answers, depending on the ambient \href{https://godbolt.org/z/js7rGvPbf}{code}.%
@@ -150,17 +148,14 @@ There are several related concerns to the goal of this paper to declare more fun
 	
 	\item The output of certain functions in \cmath\ may differ when the same binary is executed on
 	different CPUs within the same architectural family.
+		
+	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
 \end{enumerate}
 
-{\bf TO DO}
+A conceptual framework for reasoning about these issues has been given in the introduction. If one had the luxury of possessing both a [Canonical] and [Interval] implementation then much of the concern could be allayed by simply choosing the appropriate implementation for the task in hand: in the case of [Interval] the same function may produce different results in different contexts, but it a manner such that all outputs are, in a well defined sense, equally valid.
 
-
-\subsection{Implications}
-
-What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and that differences have long occurred in practice. 
-
-It is conceivable that this proposal may be abused, causing different platforms to generate radically
-different code. For example, it will be possible to do things like this:
+However, the reality is that the only available implementations are [Approximate]. Furthermore, even if an [Interval] implementation were available, some disquiet may follow from the fact that different platforms
+may do different things in the following example:
 \begin{verbatim}
 template<double D>
 struct do_stuff
@@ -182,6 +177,15 @@ However, we believe that the utility of rolling out \constexpr\ to touch more of
 As for whether certain results may come as a surprise to users, again this is true. But that
 is true of floating-point, period. It is a difficult, subtle area of programming fraught with difficulty
 due to its frequently counter-intuitive nature.
+
+Is it perfectly reasonable for people to want to generate a \constexpr\ lookup table for (say) \code{std::sin}. If they are operating in the domain where they do not care whether their values differ between platforms etc.\ is it really right that we continue to prohibit this entirely legitimate use-case, for fear of abuse of floating-point?
+
+\subsection{Statement of Intent}
+
+{\bf TO DO; subsume into design decisions?}
+
+What does all of this mean in practice, especially when it comes to extending the reach of \constexpr\ throughout \cmath? The goal is not to be overly prescriptive, but rather to find a way of coherently and rigorously providing a framework  within which much of existing C++ practice and proposed extensions can reside. As such, we do not demand that the results of mathematical functions are necessarily the same at translation time and runtime. Indeed, we know that this can't be guaranteed and that differences have long occurred in practice. 
+
 
 One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. The above framework hopefully makes it clear that floating-point numbers are inherently fuzzy and that it is, in many cases, useful to embrace this fuzziness. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
 perhaps introduces new types. It is worth pointing out that Java gives a good idea of what this
