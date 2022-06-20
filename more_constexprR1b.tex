@@ -71,10 +71,10 @@
 
 \begin{center} {\bf Abstract} \end{center}
 
-In~\cite{Rosten-constexpr}, a scattering of $\constexpr$, principally throughout \cmath, was proposed, and accepted into C++23. This was subject to a constraint that the affected functions be limited to those which are, in a well-defined sense, no more complicated than the arithmetic operators \Operators. It is proposed to remove this restriction, thereby allowing a richer spectrum of mathematical functions to be used in a \constexpr\ context. To help justify this, techniques from elementary topology are
-utilized, to rigorously define a framework into which existing practice fits reasonably well. Deviations are
-quantifiable and can be used to compute a number representing the Quality of Implementation.
-	
+A scattering of $\constexpr$, principally throughout \cmath, was proposed in~\cite{Rosten-constexpr} and accepted into C++23. This was subject to a constraint that the affected functions be limited to those which are, in a well-defined sense, no more complicated than the arithmetic operators \Operators. It is proposed to remove this restriction, thereby allowing a richer spectrum of mathematical functions to be used in a \constexpr\ context. 
+
+%The focus of this proposal is to build upon existing practice, with the goal of providing something immediately useful to a section of the C++ user base. However, it is recognized that the mathematical functions considered do not serve those requiring strict platform-independence. It is recognized that this is an important need, but argued that it is orthogonal and therefore befits a separate proposal.
+
 \end{abstract}
 
 
@@ -85,31 +85,40 @@ quantifiable and can be used to compute a number representing the Quality of Imp
 
 Since its inception, \constexpr\ has become an invaluable ingredient in compile-time programming. Indeed, part of its appeal is that the sharp distinction between meta-programming and runtime programming has in many instances become blurred. The interest in \constexpr\ is reflected by the numerous papers proposing to increase the range of core language features and library functionality that may be used in a \constexpr\ context. As such, it is essential for the long-term uniformity of C++ that parts of the standard library are not left behind in this process.
 
-This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to significantly expand the number of functions in \cmath\ (and also \complex) which may be used in a \constexpr context. The potential utility of this from numerics is noteworthy. However, it is clear that there are new hurdles to overcome: floating-point is very subtle and different people may want implementations to prioritize different things~\cite{Timmons-Less}. In other words, there is a non-trivial design space. Crudely, should implementations of floating-point functions be fast, or should they be accurate?
+This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to significantly expand the number of functions in \cmath\ (and also \complex) which may be used in a \constexpr context. The potential utility of this for numerics is noteworthy. However, it is clear that there are new hurdles to overcome: floating-point is very subtle and different people may want implementations to prioritize different things~\cite{Timmons-Less}. In other words, there is a non-trivial design space. 
 
-In fact, the issues run much deeper than this: how is accuracy even meaningfully defined for functions accepting floating-point input? To get a flavour for the subtleties, consider \code{std::sin(1e100)}.%
+Consider some function $f(x)$ and its floating-point implementation $F_R(x_n)$, where the $x_n$ are numbers representable by the floating-point type being used and $R$ denotes the rounding mode. A central issue is whether, for a given $x_n$ and $R$, $F_R(x_n)$ should always give the same answer, regardless of compiler settings and/or platform. In some cases, the answer is clearly yes: for example if $f$ corresponds to multiplication by two.  However, to take a different extreme, what about \code{std::sin(1e100)}?%
 \footnote{Thanks to Richard Smith for first bringing this example to our attention.}
-Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. Indeed, the granularity of floating-point numbers at the scale of $10^{100}$ is such that $\sin x$ sweeps across its entire range from [-1,+1] many times as we go from one floating-point input to the next available one. Therefore, in this context, the fuzziness of floating-point
-numbers makes the question of accuracy non-trivial.
 
-On the other hand, if multiplying a number exactly representable as a floating-point number by two produced something off by the last bit, this would be highly concerning! One of the components of this paper is to show how elementary topology can provide a framework to understand both of these
-extremes without providing a prejudicial opinion on the design space. The purpose of doing so is two fold:
+Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. The good news is that this intuition can be quantified. Floating-point numbers can be thought of in two ways: as points on the number line or as intervals (c.f.\ interval arithmetic~\cite{Interval}). For a given $x_n$ and rounding mode, the corresponding interval is such that all numbers in the interval collapse to $x_n$. The granularity of floating-point is such that $\sin x$ sweeps across its entire range from [-1,+1] many times in the interval containing $10^{100}$. Contrariwise, multiplication by two maps the interval associated with $x_n$ into the interval associated with $2x_n$.
+
+Thus, within the interval approach, it is reasonable for different implementations to produce different
+values for the same input; or even for the same implementation to do so depending on things such as the degree of optimization. This is true of the the way C++ works at present.
+
+However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the floating-point interval containing $x$ is mapped into some union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Does C++ conform to this? Surely not! Attempting to remedy this via standardization seems
+counterproductive. The effect would likely be to render all the existing implementations---which for many purposes work perfectly well---non-conforming. Rather, it is suggested that consideration of intervals can
+be optionally used to quantify the Quality of Implementation.
+
+With all this in mind, the design space divides up as follows:
 \begin{enumerate}
-	\item The lack of standardization of the output of mathematical functions in C++ means that practice
-	has grown organically and largely unconstrained. A danger of this is that discussions have no
-	grounding within an underlying formalism which can make progress hard. By providing a rigorous
-	conceptual framework, this paper seeks to provide such grounding but without attempting to
-	artificially and retrospectively constrain existing practice.
+	\item[Canonical] The output of mathematical functions is exactly prescribed, down to the last bit.
 	
-	\item The framework allows for Quality of Implementation (QoI) to be quantified in a way which 
-	doesn't simply label all
-	existing implementations as `bad', as might be the case if one insisted on `accuracy' to the last
-	bit. Of course, there is no unique measure of QoI but this paper
-	suggests a family which may help inform discussions.
+	\item[Interval] The output of mathematical functions may fall within a range, generated by considering the mapping of intervals corresponding to floating-point numbers.
+	
+	\item[Approximate] A weaker version of [Interval], where deviations from the desired output range 
+	are taken to reflect the QoI.
 \end{enumerate}
 
-There is one final introductory point to make.
-Given our belief that declaring more functions within \cmath\ to be \constexpr\ is useful, we seek to adhere to one of the core principles of C++~\cite{DandE}:
+C++ currently falls within the last of these. Is this a problem? It depends. If you are writing a networked multiplayer game, then lack of support for [Canonical] may be problematic. On the other hand, if you are doing physical modelling where the errors in the boundary conditions are large compared to the floating-point granularity at the appropriate scale then [Approximate] may be perfectly sound. Indeed, [Approximate] may allow vendors to write faster implementations than [Canonical] and why should users pay for a spurious 'improvement' in accuracy?
+
+All of this suggests (at least) two avenues for standardization.
+\begin{enumerate}
+	\item A new set of mathematical functions, satisfying the requirements of [Canonical].
+	
+	\item Allowing existing [Approximate] implementations to be used in a \constexpr\ context.
+\end{enumerate}
+
+This paper proposes standardization of the latter. To conclude the introduction, given our belief that declaring more functions within \cmath\ to be \constexpr\ is useful, we seek to adhere to one of the core principles of C++~\cite{DandE}:
 \begin{quote}
 	It is more important to allow a useful feature than to prevent every misuse.
 \end{quote}
@@ -143,68 +152,7 @@ There are several related concerns to the goal of this paper to declare more fun
 	different CPUs within the same architectural family.
 \end{enumerate}
 
-\subsection{A Conceptual Framework}
-
-\subsubsection{The Main Idea}
-
-The key shift in perspective proposed is to stop thinking of floating-point numbers as simply numbers, and to instead think of them as {\it labels}. In particular, consider the real numbers, $\mathbf{R}^1$. Next define a sequence of overlapping open sets which cover the entire real number line (excluding $\pm \infty$). The open sets are called charts and the union of these charts is an atlas. Each individual chart, $C_{x_n}$, holds within it a single floating-point number, $x_n$, which may be considered its label. The subscript $n$ is used for convenience to index the floating-point numbers. This is ordered such that the next floating-point number is $x_{n+1}$. Each number is assumed to be unique and so $\pm 0$ are taken to be the same. The closure of 
-$C_{x_n}$ includes the numbers $x_{n-1}$ and $x_{n+1}$ (which may be $\pm \infty$). Thus, each chart goes up to be doesn't quite touch the numbers on either side. This is illustrated in \fig{R1}.
-
-The picture is somewhat reminiscent of Interval Arithmetic~\cite{Interval}, but with some key differences.
-First, as will be described, the goal is not to quantify rounding errors, as such. Rather, the goal is to provide a set of \emph{equally valid} answers to a floating-point computations in a sense which will be made precise. Secondly, rather than the closed intervals of Interval Arithmetic, we employ overlapping open sets in a way which will be familiar from elementary topology.
-
-\begin{figure}[h]
-\begin{center}
-\resizebox{25em}{!}{\input{NumberLine.pdf_t}}
-\caption{An atlas for the real numbers, with charts labelled by the floating-point numbers. Note how the gap between floating-point numbers increases, as the exponent increments.}
-\label{fig:R1}
-\end{center}
-\end{figure}
-
-The next step is to consider a function of a single floating-point argument, $f$, \ie\ a function which maps $\mathbf{R}^1$ into itself. This procedure can be straightforwardly extended to functions of $d$ arguments, which map $\mathbf{R}^d$ into $\mathbf{R}^1$. {\bf This may need correcting!} If the function is analytic within $C_{x_n}$, then this open set will be mapped into some other open set of $\mathbf{R}^1$, denoted $D^{f(x_n)}$. By construction, the intersection of $D^{f(x_n)}$ with the charts, $C$, is non-empty. Indeed, $D^{f(x_n)}$ intersects at least one chart, and in the case there are several they must have consecutive labels. In this manner, we can instead think of the function as mapping one label, $x_n$, into a set of labels $\{x_{m}, \ldots\}$, where the set is non-empty, and the elements are consecutive. This is illustrated in \fig{Function}.
-
-\begin{figure}[h]
-\begin{center}
-\resizebox{25em}{!}{\input{Functions.pdf_t}}
-\caption{A function, analytic on the open set $C_{x_n}$, which maps it into the open set $D^{f(x_n)}$. The latter intersects with $C_{x_m}, \ldots, C_{x_{m+3}}$. In terms of sets of labels, the function can be considered to map the element $x_n$ into the set $\{x_m, \ldots, x_{m+3}\}$.}
-\label{fig:Function}
-\end{center}
-\end{figure}
-
-How does all of this abstract machinery relate to floating-point functions on real hardware? Given a function, $f$, denote a floating-point realization of this function by $F_I$, where the subscript parametrizes the precise implementation, the optimization used, the compiler flags used (such as \code{-ffast-math}), the hardware and anything else of relevance, except for the rounding mode. With this
-in mind, suppose that, as in \fig{Function}, $f$ maps $C_{x_n}$ into $D^{f(x_n)}$. A necessary
-condition for the realization, $F_I$, to be faithful is that, for every rounding mode, $F_I(x_n)$ yields
-a value from the set $\{x_{m_n}, \ldots\}$. Since this needs to be true for all $x_n$, the dependence of $m$ on $n$ has been explicitly indicated, whereas previously it was suppressed, for brevity.
-
-Some examples may clarify this. First, consider taking a number which has an exact floating-point representation and multiplying it by two.
-In this case, $\{x_{m}, \ldots\}$ comprises just a single entry and our prescription demands an exact calculation. Secondly, take the example of \code{sin(1e100)}. In this case, $\{x_{m}, \ldots\}$ comprises all charts labelled by every representable number within the range $-1 \leq y \leq 1$. Our prescription states that every one of these numbers is an equally valid output from a faithful realization. This puts our earlier intuition on a firm footing.
-
-Note that a necessary condition for a faithful realization has been given, but it is not claimed to
-be sufficient. To understand why, observe in \fig{R1} that $C_{x_n}$ is perhaps twice a large as one
-might expect. Indeed, if $\mathbf{R}^1$ were to be divided into disjoint intervals, these intervals would typically be half the size. The origin of this is that $C_{x_n}$ holds all of the values that could collapse to $x_n$ when considering all rounding modes. But when a specific rounding mode is chosen, only part of this range will actually collapse to $C_{x_n}$, with other values collapsing to either $C_{x_{n+1}}$ or $C_{x_{n-1}}$. The sufficient condition for a realization to be faithful would need to take this into account, but this is not required for our purposes.
-
-\subsubsection{Singularities}
-
-There are two types of singularities to consider: those arising from arguments that are/are not exactly representable as a floating-point number. An example of the former is $\ln 0$. An example of the latter is $\tan \pi/2$, since $\pi/2$ cannot be exactly represented as a floating-point number. Both can be incorporated into our framework in a similar way. Any number on the real line will appear in either exactly one of the $C_{x_n}$ or in exactly two: it appears in one if the number is exactly representable as a floating-point number and two, otherwise. Regardless, the next step is to introduce new open sets by copying those charts in which a singular point of the function, $f$, occurs and deleting said point. Each open set for which this is done spawns a pair of open sets in which the function is now analytic. Under the action of $f$, these open sets are now mapped into open sets. To complete the construction, the partial closure of these mapped sets is considered by reinstating the singular point. This is illustrated in \fig{Singularity}, which nicely illustrates how the procedure captures the fact that $\tan \pi/2$ can be either $\pm \infty$, depending on the direction from which the singularity is approached.
-\begin{figure}[h]
-\begin{center}
-\resizebox{25em}{!}{\input{Singularity.pdf_t}}
-\caption{Excising a singular point from two charts which include $\pi/2$. The curved lines show how the nascent open sets are mapped into $\mathbf{R}^1$ under the action of $\tan$. The new charts to the left of $\pi/2$ are mapped to large positive numbers. Reinstating $\pi/2$ would provide the upper closure of these sets by $+\infty$. Similar considerations apply to the charts to the right of $\pi/2$, though here the mapping is in the vicinity of $-\infty$.}
-\label{fig:Singularity}
-\end{center}
-\end{figure}
-
-The rest of the prescription described above now follows, almost exactly as before. The only difference is that the $D^{(f_{x_n})}$ may now contain two disjoint, but individually consecutive, sequences.
-
-\subsubsection{QoI}
-
-There are many ways to define QoI. Here, the focus is on a definition which utilizes the necessary condition for a floating-point realization of a function to be faithful. As above, suppose that $f$
-maps $C_{x_n}$ into $D^{f(x_n)}$ and that a faithful realization, $F_I(x_n)$, always yields one of the values in the set $\{x_{m_n}, \ldots\}$, whatever the rounding mode. The game now is to check,
-for each $x_n$, whether this is true. The test fails if this violated for one of more rounding modes.
-The percentage of passing tests is a measure of the QoI, $\mathcal{Q}$.
-
-Compared to a refined scheme which does not aggregate the affects of the rounding mode, $\mathcal{Q}$
-can be considered an upper bound in the QoI.
+{\bf TO DO}
 
 
 \subsection{Implications}
@@ -299,11 +247,8 @@ _Z1fv:
 with equivalent code generated by GCC. This demonstrates that both compilers are already generating the results at translation time and, therefore, independently of the runtime C library. For this particular example, it appears that current practise does indeed achieve consistency between translation time and runtime, though effectively by ignoring the latter!
 
 The story does not end here. For more complicated examples and/or removing optimization, it may be that a runtime call to the C library is made, after all. Bearing in mind that any value in the range [-1, 1] could be considered reasonable, this implies that the value of, say, \code{std::sin(1e100)} evaluated in one part of a code base may be very different from the (translation time) value evaluated elsewhere. 
-Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly allow this, as discussed in detail in \sect{Motivation} and further, below.
+Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly allow this, as already discussed in detail.
 
-\subsection{QoI}
-
-{\bf TO DO: numerical experiments with the major library implementations}
 
 
 \section{Design Decisions}
@@ -317,7 +262,9 @@ The key design decision advocated in this paper is that it is acceptable for eva
 	
 	\item Even without \constexpr, current practice has long allowed for difference in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization might not do this.
 	
-	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to describe a rigorous framework which can be used to understand existing practice in a non-prejudicial fashion and allow for extensions in the same spirit.
+	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to support
+	a useful extension to existing practice in a non-prejudicial fashion, while no precluding 
+	orthogonal developments which may cater for a different range of use-cases.
 \end{enumerate}
 
 
@@ -327,12 +274,11 @@ This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath
 
 \section{Future Directions}
 
-Ultimately it would be desirable to extend \constexpr\ to some, if not all, of the special functions. Orthogonal to this, it may also be worth considering new types with strict guarantees on the values given by associated mathematical functions.
+It would be desirable for library vendors to quantify the QoI of mathematical functions, along the lines indicated earlier. Orthogonal to this, it is worth considering separate implementations of mathematical functions with strict guarantees on their outputs. Finally, it would be ultimately desirable to extend \constexpr\ to some, if not all, of the special functions. 
 
 
 \begin{acknowledgments}
-	We would like to thank Richard Smith for his usual perceptive comments and Matthias Kretz
-	for some very helpful feedback.
+	We would like to thank Richard Smith for his usual perceptive comments and Matthias Kretz and 	Nick Timmons for some very helpful feedback and discussions.
 \end{acknowledgments}
 
 
