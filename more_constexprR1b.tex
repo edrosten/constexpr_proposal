@@ -52,7 +52,6 @@
 %\date{\today}
 
 \author{
-\hspace{11.5em}
 \begin{tabular}{ll}
 	Document: & D1383R1
 \\
@@ -62,8 +61,7 @@
 \\
 	Audience: & SG6 $\rightarrow$ LEWG $\rightarrow$ LWG $\rightarrow$ CWG
 \\
-	Reply to: & Edward J.\ Rosten {(\tt erosten@snap.com)}
- / Oliver J.\ Rosten {(\tt oliver.rosten@gmail.com)}
+	Reply to: & Oliver J.\ Rosten {(\tt oliver.rosten@gmail.com)}
 \end{tabular}
 }
 
@@ -81,6 +79,12 @@ A scattering of $\constexpr$, principally throughout \cmath, was proposed in~\ci
 \maketitle
 \tableofcontents
 
+\section{Revision History}
+
+\begin{enumerate}
+	\item[R1] Greatly expanded analysis of the design space.
+\end{enumerate}
+
 \section{Introduction}
 \label{sec:Intro}
 
@@ -91,14 +95,16 @@ This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to sign
 Consider some function $f(x)$ and its floating-point implementation $F_R(x_n)$, where the $x_n$ are numbers representable by the floating-point type being used and $R$ denotes the rounding mode. A central issue is whether, for a given $x_n$ and $R$, $F_R(x_n)$ should always give the same answer, regardless of compiler settings and/or platform. In some cases, the answer is clearly yes: for example if $f$ corresponds to multiplication by two.  However, to take a different extreme, what about \code{std::sin(1e100)}?%
 \footnote{Thanks to Richard Smith for first bringing this example to our attention.}
 
-Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. The good news is that this intuition can be quantified. Floating-point numbers can be thought of in two ways: as points on the number line or as intervals (c.f.\ interval arithmetic~\cite{Interval}). For a given $x_n$ and rounding mode, the corresponding interval is such that all numbers in the interval collapse to $x_n$. The granularity of floating-point is such that $\sin x$ sweeps across its entire range from [-1,+1] many times in the interval containing $10^{100}$. Contrariwise, multiplication by two maps the interval associated with $x_n$ into the interval associated with $2x_n$.
+Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. The good news is that this intuition can be quantified. Floating-point numbers can be thought of in two ways: as points on the number line or as intervals (c.f.\ interval arithmetic~\cite{Interval}). For a given $x_n$ and rounding mode, the corresponding interval is such that all numbers in the interval collapse to $x_n$ under rounding. The granularity of floating-point is such that $\sin x$ sweeps across its entire range from [-1,+1] many times in the interval containing $10^{100}$. Contrariwise, multiplication by two maps the interval associated with $x_n$ into the interval associated with $2x_n$.
 
 Thus, within the interval approach, it is reasonable for different implementations to produce different
 values for the same input; or even for the same implementation to do so depending on things such as the degree of optimization. This is true of the the way C++ works at present.
 
-However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the floating-point interval containing $x$ is mapped into some union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Does C++ conform to this? Surely not! Attempting to remedy this via standardization seems
+However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the mapping of the floating-point interval containing $x$ intersects with a union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Do the various C++ library implementations conform to this? Doubtful! As far as we are 
+aware implementations were not developed with this in mind.
+Attempting to remedy this via standardization seems
 counterproductive. The effect would likely be to render all the existing implementations---which for many purposes work perfectly well---non-conforming. Rather, it is suggested that consideration of intervals can
-be optionally used to quantify the Quality of Implementation.
+in principle be used to quantify the Quality of Implementation.
 
 With all this in mind, the design space divides up as follows:
 \begin{enumerate}
@@ -110,7 +116,7 @@ With all this in mind, the design space divides up as follows:
 	are taken to reflect the QoI.
 \end{enumerate}
 
-C++ currently falls within the last of these. Is this a problem? It depends. If you are writing a networked multiplayer game, then lack of support for [Canonical] may be problematic. On the other hand, if you are doing physical modelling where the errors in the boundary conditions are large compared to the floating-point granularity at the appropriate scale then [Approximate] may be perfectly sound. Indeed, [Approximate] may allow vendors to write faster implementations than [Canonical] and why should users pay for a spurious 'improvement' in accuracy?
+We assume that C++ implementations currently fall within the last of these (if any fall within the second that would be wonderful, but there is a burden of proof to demonstrate this to be the case). Is this a problem? It depends. If you are writing a networked multiplayer game, then lack of support for [Canonical] may be problematic. On the other hand, if you are doing physical modelling where the errors in the boundary conditions are large compared to the floating-point granularity at the appropriate scale then [Approximate] may be perfectly sound. Indeed, [Approximate] may allow vendors to write faster implementations than [Canonical] and why should users pay for a spurious 'improvement' in accuracy?
 
 All of this suggests (at least) two avenues for standardization.
 \begin{enumerate}
@@ -133,12 +139,12 @@ The broad strategy of~\cite{Rosten-constexpr} is to focus on those functions whi
 As~\cite{Rosten-constexpr} proceeded through the standardisation process, LEWG expressed a desire 
 to extend the scope to include a significant amount of what remains in \cmath, in particular common mathematical functions such as \code{std::exp}.%
 \footnote{It seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.}
-However, later discussion---crystalized in~\cite{Timmons-Less}---revealed significant concerns. Our hope is that these concerns can be overcome; to aid meaningful discussion, this proposal devotes space to describing a framework
-for rigorously conceptualizing the various issues.
+However, later discussion---crystalized in~\cite{Timmons-Less}---revealed significant concerns.
 
 There are several related concerns to the goal of this paper to declare more functions in \cmath\ to be \constexpr:
 \begin{enumerate}
-	\item Implementations of certain functions in \cmath\ do not produce results which are `correctly' rounded to the last bit.
+	\item Implementations of certain functions in \cmath\ do not produce results which are `correctly' rounded to the last bit.%
+	\footnote{As discussed in the introduction, it is doubtful whether rounding of e.g.\ \code{std:sin(1e100)} can be meaningfully considered correct.}
 	
 	\item The output of certain functions in \cmath\ may depend on the level of optimization; a corollary
 	is that even with a given level of (non-trivial) optimization, the same function in \cmath\ may give 
@@ -177,7 +183,7 @@ As for whether certain results may come as a surprise to users, again this is tr
 is true of floating-point, period. It is a difficult, subtle area of programming fraught with difficulty
 due to its frequently counter-intuitive nature.
 
-Is it perfectly reasonable for people to want to generate a \constexpr\ lookup table for (say) \code{std::sin}. If they are operating in the domain where they do not care whether their values differ between platforms etc.\ is it really right that we continue to prohibit this entirely legitimate use-case, for fear of abuse of floating-point?
+Is it perfectly reasonable for people to want to generate a \constexpr\ lookup table for (say) \code{std::sin}. If they are operating in the domain where they do not care whether their values differ between platforms etc.\ is it really right that we continue to prohibit this entirely legitimate use-case?
 
 \section{State of the Art and Impact on Implementers}
 
@@ -247,7 +253,7 @@ Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly
 The key design decision advocated in this paper is that it is acceptable for evaluation of a mathematical function to differ between translation time and runtime. Let us recapitulate the various points.
 
 \begin{enumerate}
-	\item Allowing a broader range of mathematical functions to be used within constant expressions is useful.
+	\item Allowing a broader range of mathematical functions to be used within constant expressions is useful; GCC already supports this.
 	
 	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed.
 	
@@ -275,7 +281,7 @@ It would be desirable for library vendors to quantify the QoI of mathematical fu
 
 
 \begin{acknowledgments}
-	We would like to thank Richard Smith for his usual perceptive comments and Matthias Kretz and 	Nick Timmons for some very helpful feedback and discussions.
+	I would like to thank Richard Smith for his usual perceptive comments and Matthias Kretz and 	Nick Timmons for some very helpful feedback and discussions. Particular thanks to Ed Rosten for collaborating on the first incarnation of this paper.
 \end{acknowledgments}
 
 
