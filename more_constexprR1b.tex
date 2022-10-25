@@ -95,11 +95,11 @@ This paper is the natural extension of~\cite{Rosten-constexpr} and seeks to sign
 Consider some function $f(x)$ and its floating-point implementation $F_R(x_n)$, where the $x_n$ are numbers representable by the floating-point type being used and $R$ denotes the rounding mode. A central issue is whether, for a given $x_n$ and $R$, $F_R(x_n)$ should always give the same answer, regardless of compiler settings and/or platform. In some cases, the answer is clearly yes: for example if $f$ corresponds to multiplication by two.  However, to take a different extreme, what about \code{std::sin(1e100)}?%
 \footnote{Thanks to Richard Smith for first bringing this example to our attention.}
 
-Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is, since shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. Indeed, consider that the ratio between the size of the observable universe and the Planck scale%
+Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is. First, shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. Secondly, the distance between adjacent floating-point numbers at this scale is of order $10^{84}$. To put this into perspective, consider that the ratio between the size of the observable universe and the Planck scale%
 \footnote{The unimaginably small distance scale at which quantum gravity presumably reigns.}
-is `only' of order $10^{62}$. Suppose that we tell an astronomer that we expect them to measure this ratio in order that we can take its $\sin$, and that we further expect to at least get the right sign. This is not entirely different from expecting a standard library implementer to ensure that \code{std::sin} gives the canonical answer, no matter how large the argument.
+is `only' of order $10^{62}$. Suppose that we tell an astronomer that we expect them to measure this ratio in order that we can take its $\sin$, and that we further expect to at least get the right sign. This is not entirely different from expecting a standard library implementer to ensure that \code{std::sin} gives the `correct' answer to the last bit, no matter how large the argument.
 
-But how to reconcile this with the other extreme exemplified by the requirement that multiplication by two should always gives the correct answer? Floating-point numbers can be thought of in two ways: as points on the number line or as intervals (c.f.\ interval arithmetic~\cite{Interval}). For a given $x_n$ and rounding mode, the corresponding interval is such that all numbers in the interval collapse to $x_n$ under rounding. The granularity of floating-point is such that $\sin x$ sweeps across its entire range from [-1,+1] many times in the interval containing $10^{100}$. Contrariwise, multiplication by two maps the interval associated with $x_n$ into the interval associated with $2x_n$.
+But how to reconcile this with the other extreme exemplified by the requirement that multiplication by two should always gives the correct answer? Floating-point numbers can be thought of in two ways: as points on the number line or as intervals (c.f.\ interval arithmetic~\cite{Interval}). For a given $x_n$ and rounding mode, the corresponding interval is such that all numbers in the interval collapse to $x_n$ under rounding. The granularity of floating-point is such that $\sin x$ sweeps across its entire range from [-1,+1] an enormous number of times in the interval containing $10^{100}$. Contrariwise, multiplication by two maps the interval associated with $x_n$ into the interval associated with $2x_n$.
 
 Thus, within the interval approach, it is reasonable for different implementations to produce different
 values for the same input; or even for the same implementation to do so depending on things such as the degree of optimization. This is true of the way C++ works at present. For an example, see \href{https://godbolt.org/z/M3fhYhx84}{https://godbolt.org/z/M3fhYhx84}:
@@ -124,7 +124,7 @@ int main()
 \end{verbatim}
 Removing the \code{-ffast-math} flag causes the output to regress from the correct answer to zero.
 
-However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the mapping of the floating-point interval containing $x$ intersects with a union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Do the various C++ library implementations conform to this? Doubtful! As far as we are 
+However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the mapping of the floating-point interval containing $x$ intersects a union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Do the various C++ library implementations conform to this? Doubtful! As far as we are 
 aware implementations were not developed with this in mind.
 Attempting to remedy this via standardization seems
 counterproductive. The effect would likely be to render all the existing implementations---which for many purposes work perfectly well---non-conforming. Rather, it is suggested that consideration of intervals can
@@ -132,7 +132,7 @@ in principle be used to quantify the Quality of Implementation.
 
 With all this in mind, the design space divides up as follows:
 \begin{enumerate}
-	\item[Canonical] The output of mathematical functions is exactly prescribed, down to the last bit.
+	\item[Canon] The output of mathematical functions is exactly prescribed, down to the last bit.
 	
 	\item[Interval] The output of mathematical functions may fall within a range, generated by considering the mapping of intervals corresponding to floating-point numbers.
 	
@@ -140,23 +140,24 @@ With all this in mind, the design space divides up as follows:
 	are taken to reflect the QoI.
 \end{enumerate}
 
-We assume that C++ implementations currently fall within the last of these (if any fall within the second that would be wonderful, but there is a burden of proof to demonstrate this to be the case). Is this a problem? It depends. If you are writing a networked multiplayer game, then lack of support for [Canonical] may be problematic. On the other hand, if you are doing physical modelling where the errors in the boundary conditions are large compared to the floating-point granularity at the appropriate scale then [Approximate] may be perfectly sound. Indeed, [Approximate] may allow vendors to write faster implementations than [Canonical] and why should users pay for a spurious `improvement' in accuracy?
+We assume that C++ implementations currently fall within the last of these (if any fall within the second that would be wonderful, but there is a burden of proof to demonstrate this to be the case). Is this a problem? It depends. If you are writing a networked multiplayer game, then lack of support for [Canon] may be problematic. On the other hand, if you are doing physical modelling where the errors in the boundary conditions are large compared to the floating-point granularity at the appropriate scale then [Approx] may be perfectly sound. Indeed, [Approx] may allow vendors to write faster implementations than [Canon] and why should users pay for a spurious `improvement' in accuracy?
 
-All of this suggests four (non-exhaustive) avenues for standardization.
+All of this suggests four (non-exhaustive and not all of which are mutually-exclusive) avenues for standardization.
 \begin{enumerate}
-	\item Allowing existing [Approximate] implementations to be used in a \constexpr\ context.
+	\item Allow existing [Approx] implementations to be used in a \constexpr\ context.
 
-	\item A new set of mathematical functions, satisfying the requirements of [Canonical].
+	\item Introduce new set of mathematical functions, satisfying the requirements of [Canon], and
+	allow them to be used in a \constexpr\ context.
 	
-	\item Demanding existing functions satisfy the constraints of [Interval].
+	\item Demand existing functions satisfy the constraints of [Interval].
 	
-	\item Demanding existing functions be [Canonical] and introduce a new set with weaker constraints.
+	\item Demand existing functions be [Canon] and introduce a new set with weaker constraints.
 \end{enumerate}
-Actually, as far as this paper is concerned the final option is not viable. First, this would compel compiler vendors to change the behaviour of existing implementations; this could have unexpected effects on the behaviour and performance of programs recompiled according to a new standard. Secondly, as discussed above, for periodic functions given a large argument, trying to define a canonical output is an exercise in absurdity. Finally, even away from awkward cases, actually verifying that answers are canonical could be very difficult, especially for \code{double}s.
+Actually, as far as this paper is concerned the final option is not viable. First and foremost, this would compel compiler vendors to change the behaviour of existing implementations, which could have unexpected effects on the behaviour and performance of programs. Beyond this, as alluded to above, it is not straightforward to define a [Canonical] output in all circumstances. Insisting on the 'correct' answer to the last bit is an exercise in absurdity. Prescribing a particular answer may be reasonable---e.g.\ zero for \code{std::sin(1e100)})---but how to agree on this value and how to decide where evaluation switches from computation to prescription? Finally, even away from awkward cases, actually verifying that answers are canonical could be very difficult, especially for \code{double}s.
 
 As for the third option, this has a certain appeal. However, on balance it is preferred to encourage implementors to use this (or something along the same lines) to quantify their QoI. Insisting that existing implementations strictly adhere to this seems too prescriptive.
 
-While there may be merit in the second option above, this paper proposes standardization of the first. This does not preclude proposing the second option at a future date, though a proper resolution of how to deal with things like \code{std::sin(1e100)} must be found. Any potential tension is more about the philosophical question of whether [Approx] functions should be usable in a \constexpr\ context. Strict adherents to the position of only allowing [Canonical] functions to be used in this way may object to the first option out of principle but, again, let us emphasise that practically speaking there is no reason the two approaches cannot coexists.
+While there may be merit in the second option above, this paper proposes standardization of the first. This does not preclude proposing the second option at a future date, though a proper resolution of how to deal with things like \code{std::sin(1e100)} must be found. Any potential tension is more about the philosophical question of whether [Approx] functions should be usable in a \constexpr\ context. Strict adherents to the position of only allowing [Canon] functions to be used in this way may object to the first option out of principle but, again, let us emphasise that practically speaking there is no reason the two approaches cannot coexists.
 
 To conclude the introduction, given our belief that declaring more functions within \cmath\ to be \constexpr\ is useful, we seek to adhere to one of the core principles of C++~\cite{DandE}:
 \begin{quote}
@@ -192,7 +193,7 @@ There are several related concerns to the goal of this paper to declare more fun
 	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
 \end{enumerate}
 
-A conceptual framework for reasoning about these issues has been given in the introduction. If one had the luxury of possessing both a [Canonical] and [Interval] implementation then much of the concern could be allayed by simply choosing the appropriate implementation for the task in hand: in the case of [Interval] the same function may produce different results in different contexts, but it a manner such that all outputs are, in a well defined sense, equally valid.
+A conceptual framework for reasoning about these issues has been given in the introduction. If one had the luxury of possessing both a [Canon] and [Interval] implementation then much of the concern could be allayed by simply choosing the appropriate implementation for the task in hand: in the case of [Interval] the same function may produce different results in different contexts, but it a manner such that all outputs are, in a well defined sense, equally valid.
 
 However, the reality is that the only available implementations are [Approx]. Furthermore, even if an [Interval] implementation were available, some disquiet may follow from the fact that different platforms
 may do different things in the following example:
@@ -299,10 +300,7 @@ The key design decision advocated in this paper is that it is acceptable for eva
 
 
 
-One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which
-perhaps introduces new types. It is worth pointing out that Java gives a good idea of what this
-may look like.
-
+One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which perhaps introduces new types.
 
 \section{Impact On the Standard}
 
