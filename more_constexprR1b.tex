@@ -26,7 +26,7 @@
 \newcommand{\Operators}{\ensuremath{+,-,\times,/}}
 
 \newcommand{\highlight}[1]{\colorbox{green}{\!\!\!\! #1}}
-\newcommand{\oldhighlight}[1]{\colorbox{blue}{\!\!\!\! #1}}
+\newcommand{\oldhighlight}[1]{#1}
 \newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
@@ -112,17 +112,16 @@ int main()
     std::cout << num() / 3.14f;
 }
 \end{verbatim}
-With the compiler setting \code{-O2 -ffast-math} the answer is not precisely one; however, with \code{-O0} it is one. From an interval perspective, this can be rationalized. Perhaps some will baulk at this example due to the use of \code{-ffast-math}; after all it does not conform to IEEE. But sometimes the flexibility afforded by \code{-ffast-math}, such as re-ordering of operations, allows it to give a more mathematically correct answer \href{https://godbolt.org/z/bnef8WjYP}{https://godbolt.org/z/bnef8WjYP}.
+With the compiler setting \code{-O2 -ffast-math} the answer is not precisely one; however, with \code{-O0} it is one. From an interval perspective, this can be rationalized. Perhaps some will baulk at this example due to the use of \code{-ffast-math}; after all it does not conform to IEEE. But sometimes the flexibility afforded by \code{-ffast-math}, such as re-ordering of operations, allows it to give what is, intuitively at any rate, a more mathematically correct answer \href{https://godbolt.org/z/3vehd87h8}{https://godbolt.org/z/3vehd87h8}.
 \begin{verbatim}
 float big() { return 1e20f;}
 
 int main()
 {
-    std::cout << std::hexfloat;
     std::cout << big() + 3.14f - big();
 }
 \end{verbatim}
-Removing the \code{-ffast-math} flag causes the output to regress from the correct answer to zero.
+Removing the \code{-ffast-math} flag causes the output to change from \code{3.14f} to zero. However care needs to be taken over-interpreting this particular example. After all, what is meant by a number such as \code{1e20f}? This number sits between two representable \code{float}s, the distance between which is of order $10^{13}$. It is simply not expressible within the language which number within this range is meant by \code{1e20f}. Within the interval approach, all numbers within the appropriate range (once rounding is taking into account) are equally valid. Following this logic through, from an interval approach, the results from both using and not using \code{-ffast-math} can be considered equally valid. Then again, na{\"i}vely applying the interval approach actually permits any answer within a very large range, in this particular case.
 
 However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the mapping of the floating-point interval containing $x$ intersects a union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Do the various C++ library implementations conform to this? Doubtful! As far as we are 
 aware implementations were not developed with this in mind.
@@ -342,8 +341,7 @@ It would be desirable for library vendors to quantify the QoI of mathematical fu
 \setlength{\parindent}{0pt}
 
 
-The following proposed changes refer to the Working Paper~\cite{WorkingPaper}. Highlighting in \highlight{green} indicates changes proposed in this paper, whilst \oldhighlight{blue} indicates changes proposed in the companion paper, \cite{Rosten-constexpr}.
-
+The following proposed changes, indicated in \highlight{green}, refer to the Working Paper~\cite{WorkingPaper}
 
 
 \subsection{Modifications to ``Header \header{complex} synposis'' [complex.syn]}
