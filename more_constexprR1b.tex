@@ -97,7 +97,7 @@ Consider some function $f(x)$ and its floating-point implementation $F_R(x_n)$, 
 
 Whilst it is of course true that there is an unambiguous result to $\sin 10^{100}$, we may well wonder how meaningful it is. First, shifting the argument by a tiny amount---of relative size $10^{-100}$---can cause the output to change dramatically. Secondly, the distance between adjacent floating-point numbers at this scale is of order $10^{84}$. To put this into perspective, consider that the ratio between the size of the observable universe and the Planck scale%
 \footnote{The unimaginably small distance scale at which quantum gravity presumably reigns.}
-is `only' of order $10^{62}$. Suppose that we tell an astronomer that we expect them to measure this ratio in order that we can take its $\sin$, and that we further expect to at least get the right sign. This is not entirely different from expecting a standard library implementer to ensure that \code{std::sin} gives the `correct' answer to the last bit, no matter how large the argument.
+is `only' of order $10^{62}$. Suppose that we tell an astronomer that we expect them to measure this ratio in order that we can take its $\sin$, and that we further expect to at least get the first few significant figures right. This is not entirely different from expecting a standard library implementer to ensure that \code{std::sin} gives the `correct' answer to the last bit, no matter how large the argument: at least to the extent that it is not entirely clear how to ascribe meaning to the answer.
 
 But how to reconcile this with the other extreme exemplified by the requirement that multiplication by two should always gives the correct answer? Floating-point numbers can be thought of in two ways: as points on the number line or as intervals (c.f.\ interval arithmetic~\cite{Interval}). For a given $x_n$ and rounding mode, the corresponding interval is such that all numbers in the interval collapse to $x_n$ under rounding. The granularity of floating-point is such that $\sin x$ sweeps across its entire range from [-1,+1] an enormous number of times in the interval containing $10^{100}$. Contrariwise, multiplication by two maps the interval associated with $x_n$ into the interval associated with $2x_n$.
 
@@ -121,22 +121,25 @@ int main()
     std::cout << big() + 3.14f - big();
 }
 \end{verbatim}
-Removing the \code{-ffast-math} flag causes the output to change from \code{3.14f} to zero. However care needs to be taken over-interpreting this particular example. After all, what is meant by a number such as \code{1e20f}? All numbers within a range of order $10^{13}$ reduce to this under rounding. It is simply not expressible within the language which number within this range is meant by \code{1e20f}. Within the interval approach, all numbers within the appropriate range (once rounding is taking into account) are equally valid. Following this logic through, from an interval approach, the results from both using and not using \code{-ffast-math} can be considered equally valid. Then again, na{\"i}vely applying the interval approach actually permits any answer within a very large range, in this particular case.
+Removing the \code{-ffast-math} flag causes the output to change from \code{3.14f} to zero. However care needs to be taken over-interpreting this particular example. After all, what is meant by a number such as \code{1e20f}? A set of numbers within a range of order $10^{13}$ reduce to this under rounding. It is simply not expressible within the language which number within this range is meant by \code{1e20f}. Within the interval approach, all numbers within the appropriate range (once rounding is taking into account) are equally valid. Following this logic through, from an interval approach, the results from both using and not using \code{-ffast-math} can be considered equally valid. Then again, na{\"i}vely applying the interval approach actually permits any answer within a very large range, in this particular case.
 
 However, even within the interval approach, it is not a free-for-all. Under the action of the true mathematical function, $f$, the mapping of the floating-point interval containing $x$ intersects a union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Do the various C++ library implementations conform to this? Doubtful! As far as we are 
 aware implementations were not developed with this in mind.
 Attempting to remedy this via standardization seems
-counterproductive. The effect would likely be to render all the existing implementations---which for many purposes work perfectly well---non-conforming. Rather, it is suggested that consideration of intervals can
-in principle be used to quantify the Quality of Implementation.
+counterproductive. The effect would likely be to render all the existing implementations---which for many purposes work perfectly well---non-conforming. Rather, it is suggested that consideration of intervals can,
+in principle, be used as one measure of the Quality of Implementation (QoI).
 
 With all this in mind, the design space divides up as follows:
 \begin{enumerate}
-	\item[Canon] The output of mathematical functions is exactly prescribed, down to the last bit.
+	\item[Canon] The output of the floating-point implementation of a mathematical function coincides 
+	with the underlying function itself, down to the last bit.
 	
-	\item[Interval] The output of mathematical functions may fall within a range, generated by considering the mapping of intervals corresponding to floating-point numbers.
+	\item[Interval] The output of the floating-point implementation of a mathematical function may fall 
+	within a range, generated by considering the mapping of intervals corresponding to floating-point 
+	numbers.
 	
-	\item[Approx] A weaker version of [Interval], where deviations from the desired output range 
-	are taken to reflect the QoI.
+	\item[Approx] A weaker version of [Interval], where deviations from either the desired output range 
+	or the canonical answer may be taken to reflect the QoI.
 \end{enumerate}
 
 We assume that C++ implementations currently fall within the last of these (if any fall within the second that would be wonderful, but there is a burden of proof to demonstrate this to be the case). Is this a problem? It depends. If you are writing a networked multiplayer game, then lack of support for [Canon] may be problematic. On the other hand, if you are doing physical modelling where the errors in the boundary conditions are large compared to the floating-point granularity at the appropriate scale then [Approx] may be perfectly sound. Indeed, [Approx] may allow vendors to write faster implementations than [Canon] and why should users pay for a spurious `improvement' in accuracy?
@@ -153,28 +156,31 @@ All of this suggests four (non-exhaustive and not all of which are mutually-excl
 		\label{approx-with-QoI}
 		
 		\item That, in a \constexpr\ context, they satisfy [Canon];
+		\label{canon-constexpr}
 		
 		\item That, in a \constexpr\ context, they satisfy [Interval].
 	\end{enumerate}
 
-	\item Introduce new set of mathematical functions, satisfying the requirements of [Canon], and
+	\item Introduce a new set of mathematical functions, satisfying the requirements of [Canon], and
 	allow them to be used in a \constexpr\ context.
+	\label{canon-new}
 	
 	\item Demand existing functions always satisfy the constraints of [Interval].
 	
 	\item Demand existing functions be [Canon] and introduce a new set with weaker constraints.
 \end{enumerate}
-Actually, as far as this paper is concerned the final option is not viable. First and foremost, this would compel compiler vendors to change the behaviour of existing implementations, which could have unexpected effects on the behaviour and performance of programs. Beyond this, as alluded to above, it is not straightforward to define a [Canon] output in all circumstances. Insisting on the `correct' answer to the last bit can be an exercise in absurdity. Prescribing a particular answer may be reasonable---e.g.\ zero for \code{std::sin(1e100)})---but how to agree on this value and how to decide where evaluation switches from computation to prescription? Finally, even away from awkward cases, actually verifying that answers are canonical could be very difficult, especially for \code{double}s.
+Actually, as far as this paper is concerned the final option is not viable. First and foremost, this would compel compiler vendors to change the behaviour of existing implementations, which could have unexpected effects on the behaviour and performance of programs. Beyond this, as alluded to above, it is not obvious whether it is constructive to demand [Canon] in all circumstances. Insisting on the `correct' answer to the last bit can be an exercise in absurdity. Perhaps it may be reasonable to prescribe certain answers---e.g.\ zero for \code{std::sin(1e100)}---but how to agree on this value and how to decide where evaluation switches from computation to prescription? There is also the question as relationships such as the trigonometric identities should be preserved%
+\footnote{Thanks to Hans Boehm for pointing this out.}; but again it is worth at least posing the question as to whether floating-point calculations have any real meaning at all in the domain currently being discussed. Finally, even away from awkward cases, actually verifying that answers are canonical could be difficult, especially for \code{double}s.
 
 As for the third option, this has a certain appeal. However, on balance it is preferred to encourage implementors to use this (or something along the same lines) to quantify their QoI. Insisting that existing implementations strictly adhere to this seems too prescriptive.
 
-While there may be merit in the second option above, this paper proposes standardization of~\ref{approx-with-QoI}. This does not preclude proposing the second option at a future date, though a proper resolution of how to deal with things like \code{std::sin(1e100)} must be found. Any potential tension is more about the philosophical question of whether [Approx] functions should be usable in a \constexpr\ context. Strict adherents to the position of only allowing [Canon] functions to be used in this way may object to the first option out of principle but, again, let us emphasise that practically speaking there is no reason the two approaches cannot coexists.
+While there may be merit in the second option above, this paper proposes standardization of~\ref{approx-with-QoI}. This does not preclude proposing the second option at a future date, though a considered resolution of how to deal with things like \code{std::sin(1e100)} must be found. Any potential tension is more about the philosophical question of whether [Approx] functions should be usable in a \constexpr\ context. Strict adherents to the position of only allowing [Canon] functions to be used in this way may object to the first option out of principle but, again, let us emphasise that practically speaking there is no reason the two approaches cannot coexists.
 
 To conclude the introduction, given our belief that declaring more functions within \cmath\ to be \constexpr\ is useful, we seek to adhere to one of the core principles of C++~\cite{DandE}:
 \begin{quote}
 	It is more important to allow a useful feature than to prevent every misuse.
 \end{quote}
-Whether this paper is ultimately accepted or not boils down to the relative strength of usefulness versus potential for misuse.
+Whether or not proposal~\ref{approx-with-QoI} is ultimately accepted boils down to the relative strength of usefulness versus potential for misuse. For~\ref{canon-constexpr} the balance shifts more towards whether the impact on library implementors and the commensurate delay for end-users is worth it: doing this is as hard as~\ref{canon-new}.
 
 \section{Motivation \& Scope}
 \label{sec:Motivation}
