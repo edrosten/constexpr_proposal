@@ -231,7 +231,7 @@ struct do_stuff<1.0>
 do_stuff<std::sin(1e100)>::execute();
 \end{verbatim}
 
-Nevertheless, we believe that the utility of rolling out \constexpr\ to touch more of \cmath\ outweighs the fact that it may be misused, bringing us back to the core principle cited in the introduction, from~\cite{DandE}.
+That being said, even if the result were guaranteed to be the same on every platform, the code is no less ridiculous. Indeed, we believe that the utility of rolling out \constexpr\ to touch more of \cmath\ outweighs the fact that it may be misused, bringing us back to the core principle cited in the introduction, from~\cite{DandE}.
 It is perfectly reasonable for people to want to generate a \constexpr\ lookup table for (say) \code{std::sin}. If they are operating in the domain where they do not care whether their values differ between platforms etc.\ is it really right that we continue to prohibit this entirely legitimate use-case?
 
 \section{State of the Art and Impact on Implementers}
@@ -317,7 +317,7 @@ The key design decision advocated in this paper is that it is acceptable for eva
 
 
 
-One way or another, all of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which perhaps introduces new types.
+One way or another, much of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which perhaps introduces new types.
 
 \section{Impact On the Standard}
 
