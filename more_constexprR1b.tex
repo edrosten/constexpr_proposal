@@ -121,7 +121,7 @@ int main()
     std::cout << big() + 3.14f - big();
 }
 \end{verbatim}
-Removing the \code{-ffast-math} flag causes the output to change from \code{3.14f} to zero. However care needs to be taken over-interpreting this particular example. After all, what is meant by a number such as \code{1e20f}? A set of numbers within a range of order $10^{13}$ reduce to this under rounding. It is simply not expressible within the language which number within this range is meant by \code{1e20f}. Within the interval approach, all numbers within the appropriate range (once rounding is taking into account) are equally valid. Following this logic through, from an interval approach, the results from both using and not using \code{-ffast-math} can be considered equally valid. Then again, the interval approach actually permits any answer within what intuitively feels like a large range (though in relative terms, with the scale set by \code{big()}, the range is small).
+Removing the \code{-ffast-math} flag causes the output to change from \code{3.14f} to zero. However care needs to be taken over-interpreting this particular example. After all, what is meant by a number such as \code{1e20f}? A set of numbers within a range of order $10^{13}$ reduce to this under rounding. It is simply not expressible within the language which number within this range is meant by \code{1e20f}; and how could it be? Floating-point has finite precision. Within the interval approach, all numbers within the appropriate range (once rounding is taking into account) are equally valid. Following this logic through, from an interval approach, the results from both using and not using \code{-ffast-math} can be considered equally valid. Then again, the interval approach actually permits any answer within what intuitively feels like a large range (though in relative terms, with the scale set by \code{big()}, the range is small).
 
 In more general terms, the interval approach can be understood as follows. Under the action of the true mathematical function, $f$, the mapping of the floating-point interval containing $x$ intersects a union of floating-point intervals. The latter define what can reasonably be considered equally valid output of $F_R(x_n)$. Do the various C++ library implementations conform to this? Doubtful! As far as we are 
 aware implementations were not developed with this in mind.
@@ -146,8 +146,7 @@ We assume that C++ implementations currently fall within the last of these (if a
 
 All of this suggests the following avenues (non-exhaustive and not all of which are mutually-exclusive) for standardization.
 \begin{enumerate}
-	\item Allow existing [Approx] implementations to be used in a \constexpr\ context demanding
-	either
+	\item Allow existing [Approx] implementations of the mathematical functions to be used in a \constexpr\ context demanding either
 	\begin{enumerate}
 		\item No additional requirements, whatsoever;
 		
@@ -155,10 +154,10 @@ All of this suggests the following avenues (non-exhaustive and not all of which 
 		of adherence to either [Canon] or [Interval];
 		\label{approx-with-QoI}
 		
-		\item That, in a \constexpr\ context, they satisfy [Canon];
+		\item That, in a \constexpr\ context, functions satisfy [Canon];
 		\label{canon-constexpr}
 		
-		\item That, in a \constexpr\ context, they satisfy [Interval].
+		\item That, in a \constexpr\ context, functions satisfy [Interval].
 	\end{enumerate}
 
 	\item Introduce a new set of mathematical functions, satisfying the requirements of [Canon], and
@@ -169,10 +168,13 @@ All of this suggests the following avenues (non-exhaustive and not all of which 
 	
 	\item Demand existing functions be [Canon] and introduce a new set with weaker constraints.
 \end{enumerate}
-Actually, as far as this paper is concerned the final option is not viable. First and foremost, this would compel compiler vendors to change the behaviour of existing implementations, which could have unexpected effects on the behaviour and performance of programs. Beyond this, as alluded to above, it is not obvious whether it is constructive to demand [Canon] in all circumstances. Insisting on the `correct' answer to the last bit can be an exercise in absurdity. Perhaps it may be reasonable to prescribe certain answers---e.g.\ zero for \code{std::sin(1e100)}---but how to agree on this value and how to decide where evaluation switches from computation to prescription? There is also the question as to whether relationships such as the trigonometric identities should be preserved%
+Actually, as far as this paper is concerned the final option is not viable. First and foremost, this would compel compiler vendors to change the behaviour of existing implementations, which could have unexpected effects on the behaviour and performance of programs. Beyond this, as alluded to above, it is not obvious whether it is constructive to demand [Canon] in all circumstances. Insisting on the `correct' answer to the last bit can be an exercise in absurdity. Perhaps it may be reasonable to prescribe certain answers---e.g.\ zero for \code{std::sin(1e100)}---but how to agree on this value and how to decide where evaluation switches from computation to prescription?%
+\footnote{One reasonable approach would be to make the shift when the floating-point interval between numbers becomes sufficiently large so as to saturate the range of a function.
+}
+ There is also the question as to whether relationships such as the trigonometric identities should be preserved%
 \footnote{Thanks to Hans Boehm for pointing this out.}; but again it is worth at least critically assessing whether floating-point calculations have any real meaning at all in certain domains. Finally, even away from awkward cases, actually verifying that answers are canonical could be difficult, especially for \code{double}s.
 
-As for the third option, this has a certain appeal. However, on balance it is preferred to encourage implementors to use this (or something along the same lines) to quantify their QoI. Insisting that existing implementations strictly adhere to this seems too prescriptive.
+As for the third option, this has a certain appeal. However, on balance it is preferred to encourage implementors to use this (or something along similar lines) to quantify their QoI. Insisting that existing implementations strictly adhere to this seems too prescriptive.
 
 While there may be merit in the second option above, this paper proposes standardization of~\ref{approx-with-QoI}. This does not preclude proposing the second option at a future date, though a considered resolution of how to deal with things like \code{std::sin(1e100)} should be found. 
 Any potential tension is more about the philosophical question of whether [Approx] functions should be usable in a \constexpr\ context. Strict adherents to the position of only allowing [Canon] functions to be used in this way may object to the first option out of principle but, again, let us emphasise that practically speaking there is no reason the two approaches cannot coexists.
@@ -194,10 +196,10 @@ to extend the scope to include a significant amount of what remains in \cmath, i
 \footnote{It seems too ambitious at this stage to include the mathematical special functions [sf.cmath] and so they are excluded from this proposal.}
 However, later discussion---crystalized in~\cite{Timmons-Less}---revealed significant worries.
 
-There are several related concerns to the goal of this paper to declare more functions in \cmath\ to be \constexpr:
+Various, related concerns to the goal of this paper to declare more functions in \cmath\ to be \constexpr\ have been raised:
 \begin{enumerate}
 	\item Implementations of certain functions in \cmath\ do not produce results which are `correctly' rounded to the last bit.%
-	\footnote{As discussed in the introduction, it is doubtful whether rounding of e.g.\ \code{std:sin(1e100)} can be meaningfully considered correct.}	
+	\footnote{As discussed in the introduction, it is doubtful whether rounding of e.g.\ \code{std:sin(1e100)} can be meaningfully considered correct, though it may nevertheless serve as a useful prescription for giving a standard answer.}	
 			
 	\item The output of certain functions in \cmath\ may differ depending on whether they are evaluated at runtime or translation time.
 	
@@ -214,10 +216,19 @@ There are several related concerns to the goal of this paper to declare more fun
 
 \end{enumerate}
 
-A conceptual framework for reasoning about these issues has been given in the introduction. If one had the luxury of possessing both a [Canon] and [Interval] implementation then much of the concern could be allayed by simply choosing the appropriate implementation for the task in hand: in the case of [Interval] the same function may produce different results in different contexts, but it a manner such that all outputs are, in a well defined sense, equally valid.
+Actually, concerns like these can be subsumed into three broader worries:
+\begin{enumerate}
+	\item Is it acceptable for evaluation of mathematical functions to differ between translation time and
+	runtime?
+	
+	\item Is is acceptable for the evaluation of mathematical functions at runtime to depend on things other than the round mode?
 
-However, the reality is that the only available implementations are [Approx]. Furthermore, even if an [Interval] implementation were available, some disquiet may follow from the fact that different platforms
-may do different things in the following example:
+	\item Is it acceptable for constant evaluation of mathematical functions to differ between platforms?
+\end{enumerate}
+
+A conceptual framework for reasoning about these issues has been given in the introduction. If one had the luxury of possessing both a [Canon] and [Interval] implementation then much of the concern regarding the first and second issues could be allayed by simply choosing the appropriate implementation for the task in hand, accepting the tradeoffs. If an identical answer is required in all situations (except possibly when the runtime rounding mode is changed), then use the [Canon] implementation. If the cost of this is undesirable then use [Interval]: the same function may produce different results in different contexts, but in a manner such that all outputs are, in a well defined sense, equally valid.
+
+However, the reality is that the only available implementations are [Approx]. Nevertheless, C++ has long allowed for differences between translation time and runtime; and runtime evaluation itself depends on things such as the degree of optimization. It is certainly the case that quantification of this may very well be useful and can feed into QoI; but in of itself long-standing practice shouldn't present an obstacle to the goals of this paper. But what of whether it is acceptable for constant evaluation of mathematical functions to differ between platforms? Even if an [Interval] implementation were available, some disquiet may follow from the fact that different platforms may do different things in the following example:
 \begin{verbatim}
 template<double D>
 struct do_stuff
@@ -239,7 +250,24 @@ That being said, even if the result were guaranteed to be the same on every plat
 It is perfectly reasonable for people to want to generate a \constexpr\ lookup table for (say) \code{std::sin}. If they are operating in the domain where they do not care whether their values differ between platforms etc.\ is it really right that we continue to prohibit this entirely legitimate use-case?
 
 Furthermore, there is a case to be made that allowing additional functions within \cmath\ to be used in constant expressions actually confers a greater degree of control to users. As things stand, whether constant folding is performed can depend on a variety of factors, such as the degree of optimization and the ambient code (as illustrated earlier). By allowing people to write things such as
-\code{constexpr auto x{std::exp(1.0}}, they are able to specify their intent within the language: evaluate this at translation time.
+\begin{verbatim}
+constexpr auto x{std::exp(1.0)};
+\end{verbatim}
+ they are able to specify their intent within the language: evaluate this at translation time.
+
+This naturally leads us to consider the fact that the latest C working draft carves out identifiers prefixed with \code{cr\_} to represent [Canon] implementations of mathematical functions. If we are to work on the assumption that such functions will at some point materialize, then why not leave \cmath\ as it is and only allow the \code{cr\_} functions in a \constexpr\ context? After all, in the above example the intent to evaluate at translation time could be perfectly well specified by without any appreciable downside
+\begin{verbatim}
+constexpr auto x{std::cr_exp(1.0)};
+\end{verbatim}
+But here's the problem: mathematical functions are used to build up other functions and it may be desirable to use such functions both in a standard runtime context and also in a \constexpr\ context, for all the reasons given above. For users who do not care that these functions are not [Canon]---indeed, they may very well desire the runtime performance gains that a less prescriptive implementation may confer---it is not reasonable to expect them to implement all of their functions twice.
+
+Thus, regardless of whether or not C++ ends up with [Canon] mathematical functions
+\begin{enumerate}
+	\item There will always be a desire from some quarters for the existing \cmath\ behaviour;
+	
+	\item Allowing people to use these functions in a \constexpr\ context has benefits.
+\end{enumerate}
+
 
 \section{State of the Art and Impact on Implementers}
 
@@ -312,7 +340,7 @@ The key design decisions advocated in this paper are that:
 
 	\item It is acceptable for constant evaluation of mathematical functions to differ between platforms.
 	
-	\item It is preferred to encourage specification of QoI rather than mandate precise behaviour for existing functions within \cmath.
+	\item It is preferable to encourage quantification of QoI rather than mandate precise behaviour for existing functions within \cmath.
 \end{enumerate}
 
 Let us recapitulate the various points.
@@ -320,7 +348,7 @@ Let us recapitulate the various points.
 \begin{enumerate}
 	\item Allowing a broader range of mathematical functions to be used within constant expressions is useful; GCC already supports this.
 	
-	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed. {\bf SKYLAKE EXAMPLE}
+	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed. Furthermore, runtime evaluation may invoke instructions such as fused multiply/add (fma), which are not necessarily utilized at translation time: \href{https://godbolt.org/z/ceonfG4cT}{https://godbolt.org/z/ceonfG4cT}.
 	
 	\item Even without \constexpr, current practice has long allowed for differences in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization might not do this.
 	
@@ -332,7 +360,7 @@ Let us recapitulate the various points.
 
 
 
-One way or another, much of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal, which perhaps introduces new types.
+One way or another, much of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal.
 
 \section{Impact On the Standard}
 
@@ -340,11 +368,11 @@ This proposal amounts to a (further) liberal sprinkling of \constexpr\ in \cmath
 
 \section{Future Directions}
 
-t is worth considering separate implementations of mathematical functions with strict guarantees on their outputs. Finally, it would be ultimately desirable to extend \constexpr\ to some, if not all, of the special functions. 
+It is worth considering separate implementations of mathematical functions with strict guarantees on their outputs. Finally, it would be ultimately desirable to extend \constexpr\ to some, if not all, of the special functions. 
 
 
 \begin{acknowledgments}
-	I would like to thank Richard Smith for his usual perceptive comments and Matthias Kretz and 	Nick Timmons for some very helpful feedback and discussions. Particular thanks to Ed Rosten for collaborating on the first incarnation of this paper.
+	I would like to thank Richard Smith for his usual perceptive comments and Matthias Kretz and Nick Timmons for some very helpful feedback and discussions. Particular thanks to Ed Rosten for collaborating on the first incarnation of this paper.
 \end{acknowledgments}
 
 
