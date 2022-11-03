@@ -183,7 +183,7 @@ To conclude the introduction, given our belief that declaring more functions wit
 \begin{quote}
 	It is more important to allow a useful feature than to prevent every misuse.
 \end{quote}
-Whether or not proposal~\ref{approx-with-QoI} is ultimately accepted boils down to the relative strength of usefulness and implementability versus potential for misuse. For~\ref{canon-constexpr} the balancing act shifts more towards whether the impact on library implementors and the commensurate delay for end-users is worth it: doing this is as hard as~\ref{canon-new}.
+Whether or not proposal~\ref{approx-with-QoI} is ultimately accepted boils down to the relative strength of usefulness and implementability versus potential for misuse. For~\ref{canon-constexpr} the balancing act shifts more towards whether the impact on library implementors and the commensurate delay for end-users is worth it: doing this is as hard as~\ref{canon-new}. It is also worth noting that the~\ref{canon-constexpr} approach of  switching between [Appox] and [Canon] implementations via an \code{if consteval} branch will, in some cases, significantly increase the difference between the compile-time and runtime outputs, compared to~\ref{approx-with-QoI}.
 
 \section{Motivation \& Scope}
 \label{sec:Motivation}
@@ -221,7 +221,7 @@ Actually, concerns like these can be subsumed into three broader worries:
 	\item Is it acceptable for evaluation of mathematical functions to differ between translation time and
 	runtime?
 	
-	\item Is is acceptable for the evaluation of mathematical functions at runtime to depend on things other than the round mode?
+	\item Is is acceptable for the evaluation of mathematical functions at runtime to depend on things other than the rounding mode?
 
 	\item Is it acceptable for constant evaluation of mathematical functions to differ between platforms?
 \end{enumerate}
@@ -348,19 +348,19 @@ Let us recapitulate the various points.
 \begin{enumerate}
 	\item Allowing a broader range of mathematical functions to be used within constant expressions is useful; GCC already supports this.
 	
-	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed. Furthermore, runtime evaluation may invoke instructions such as fused multiply/add (fma), which are not necessarily utilized at translation time: \href{https://godbolt.org/z/ceonfG4cT}{https://godbolt.org/z/ceonfG4cT}.
+	\item Since the advent of \constexpr, the standard has implicitly allowed for differences between translation time and runtime evaluation: the arithmetic operators \Operators\ may be used in either context, but only in a runtime context may the rounding mode be changed. Furthermore, runtime evaluation may invoke instructions such as fused multiply-add (fma), which are not necessarily utilized at translation time: \href{https://godbolt.org/z/ceonfG4cT}{https://godbolt.org/z/ceonfG4cT}.
 	
 	\item Even without \constexpr, current practice has long allowed for differences in the output of mathematical functions between any of translation time, runtime, runtime with different compiler flags, and runtime on a different platform. For example, optimization may emit code which entirely bypasses runtime calls to the C library, instead generating results at translation time. However, under other circumstances, optimization might not do this.
 	
 	\item The philosophy of this paper is not to accept an impasse. Rather, it is preferred to support
 	a useful extension to existing practice in a non-prejudicial fashion, while not precluding 
 	orthogonal developments which may cater for a different range of use-cases. It also advocates
-	for (but does not require) that implementers provide more information on their QoI.
+	(but does not require) that implementers provide more information on their QoI.
 \end{enumerate}
 
 
 
-One way or another, much of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes and we emphasise again that this is already part of C++. That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal.
+One way or another, much of this boils down to the question of whether it is really acceptable for mathematical functions to give different results in different contexts, given the same input. Again, our answer is yes; we emphasise again that this is already part of C++ and does not imply that C++ is broken! That being said, there are cases where people may want a mathematical function to produce the same result, given the same input, in all situations (except, presumably, when the rounding mode is changed). Our opinion is that this is best served by a separate proposal.
 
 \section{Impact On the Standard}
 
