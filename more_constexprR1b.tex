@@ -255,7 +255,7 @@ constexpr auto x{std::exp(1.0)};
 \end{verbatim}
  they are able to specify their intent within the language: evaluate this at translation time.
 
-This naturally leads us to consider the fact that the latest C working draft carves out identifiers prefixed with \code{cr\_} to represent [Canon] implementations of mathematical functions. If we are to work on the assumption that such functions will at some point materialize, then why not leave \cmath\ as it is and only allow the \code{cr\_} functions in a \constexpr\ context? After all, in the above example the intent to evaluate at translation time could be perfectly well specified by without any appreciable downside
+This naturally leads us to consider the fact that the latest C working draft carves out identifiers prefixed with \code{cr\_} to represent [Canon] implementations of mathematical functions. If we are to work on the assumption that such functions will at some point materialize, then why not leave \cmath\ as it is and only allow the \code{cr\_} functions in a \constexpr\ context? After all, in the above example the intent to evaluate at translation time could be perfectly well specified, without any appreciable downside, by
 \begin{verbatim}
 constexpr auto x{std::cr_exp(1.0)};
 \end{verbatim}
@@ -336,7 +336,7 @@ Nevertheless, it seems reasonable in our opinion that both clang and GCC tacitly
 
 The key design decisions advocated in this paper are that:
 \begin{enumerate}
-	\item It is acceptable for evaluation of a mathematical functions to differ between translation time and runtime.
+	\item It is acceptable for evaluation of mathematical functions to differ between translation time and runtime.
 
 	\item It is acceptable for constant evaluation of mathematical functions to differ between platforms.
 	
