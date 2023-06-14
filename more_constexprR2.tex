@@ -489,6 +489,114 @@ The following proposed changes, indicated in \highlight{green}, refer to the Wor
   template<class T> \highlight{constexpr} complex<T> tanh (const complex<T>\&);
 }
 
+\subsection{Modifications to ``Value Operations'' [complex.value.ops]}
+
+\code{
+	\ldots\\
+
+	template<class T> \highlight{constexpr} T abs(const complex<T>\&);\\
+
+ 	\ldots\\
+
+	template<class T> \highlight{constexpr} T arg(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> constexpr T norm(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> constexpr conj(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} proj(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} polar(const T\&, const T\& = T());	
+}
+
+\subsection{Modifications to ``Transcendentals'' [complex.transcendentals]}
+
+\code{
+  	template<class T> \highlight{constexpr} complex<T> acos(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> asin(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> atan(const complex<T>\&);\\
+
+	\ldots\\
+
+  	template<class T> \highlight{constexpr} complex<T> acosh(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> asinh(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> atanh(const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> cos  (const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> cosh (const complex<T>\&);\\
+
+	\ldots\\
+	
+	template<class T> \highlight{constexpr} complex<T> exp  (const complex<T>\&);\\
+
+	\ldots\\
+
+ 	template<class T> \highlight{constexpr} complex<T> log  (const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> log10(const complex<T>\&);\\
+	
+	\ldots\\
+
+  	template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\&, const T\&);\\
+
+	\ldots\\
+ 
+ 	template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\&, const complex<T>\&);\\
+	
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> pow  (const T\&, const complex<T>\&);\\
+
+	\ldots\\
+
+  	template<class T> \highlight{constexpr} complex<T> sin  (const complex<T>\&);\\
+
+	\ldots\\
+	
+	template<class T> \highlight{constexpr} complex<T> sinh (const complex<T>\&);\\
+
+	\ldots\\
+ 
+ 	template<class T> \highlight{constexpr} complex<T> sqrt (const complex<T>\&);\\
+
+	\ldots\\
+ 
+ 	template<class T> \highlight{constexpr} complex<T> tan  (const complex<T>\&);\\
+
+	\ldots\\
+
+	template<class T> \highlight{constexpr} complex<T> tanh (const complex<T>\&);\\
+
+	\ldots\\
+}
+
 \subsection{Modifications to  ``Header \header{cmath} synopsis'' [cmath.syn]}
 
 
@@ -662,7 +770,7 @@ namespace std\{
 
 %% frexp %%
 
-\highlight{constexpr} \fptype\ frexp(\fptype\ value, int* exp);
+\oldhighlight{constexpr} \fptype\ frexp(\fptype\ value, int* exp);
 
 \oldhighlight{constexpr}  float frexpf(float value, int* exp);
 
@@ -672,7 +780,7 @@ namespace std\{
 
 %% ilogb %%
 
-\highlight{constexpr} \fptype\ ilogb(\fptype\ x);
+\oldhighlight{constexpr} \fptype\ ilogb(\fptype\ x);
 
 \oldhighlight{constexpr} int ilogbf(float x);
 
@@ -682,7 +790,7 @@ namespace std\{
 
 %% ldexp %%
 
-\highlight{constexpr} \fptype\ ldexp(\fptype\ x, int exp);
+\oldhighlight{constexpr} \fptype\ ldexp(\fptype\ x, int exp);
 
 \oldhighlight{constexpr} float ldexpf(float x, int exp);
 
