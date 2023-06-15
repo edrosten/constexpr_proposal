@@ -7,7 +7,7 @@
 \usepackage{fancyvrb}
 \usepackage{epsfig}
 \usepackage{hyperref}
-
+\usepackage[normalem]{ulem}
 \newcommand{\constexpr}{\code{constexpr}\xspace}
 \newcommand{\code}[1]{{\tt #1}}
 \newcommand{\header}[1]{{\tt <#1>}}
@@ -28,6 +28,7 @@
 \newcommand{\highlight}[1]{\colorbox{green}{\!\!\!\! #1}}
 \newcommand{\oldhighlight}[1]{#1}
 \newcommand{\stdcomment}[1]{{// {\it see} [#1]}}
+\newcommand{\remove}[1]{\colorbox{red}{\!\!\!\! #1}}
 
 \newcommand{\eq}[1]{(\ref{eq:#1})}
 \newcommand{\fig}[1]{figure~\ref{fig:#1}}
@@ -54,13 +55,13 @@
 
 \author{
 \begin{tabular}{ll}
-	Document: & D1383R2
+	Document: & P1383R2
 \\
 	Date: & \today
 \\
 	Project: & Programming Language C++, Library Working Group
 \\
-	Audience: & SG6 $\rightarrow$ LEWG $\rightarrow$ LWG $\rightarrow$ CWG
+	Audience: & SG6 $\rightarrow$ LEWG $\rightarrow$ LWG
 \\
 	Reply to: & Oliver J.\ Rosten {(\tt oliver.rosten@gmail.com)}
 \end{tabular}
@@ -429,11 +430,11 @@ The following proposed changes, indicated in \highlight{green}, refer to the Wor
 	
 	\vspace{2ex}
 	
-	template<class T> constexpr conj(const complex<T>\&);
+	template<class T> constexpr complex<T> conj(const complex<T>\&);
 	
-	template<class T> \highlight{constexpr} proj(const complex<T>\&);
+	template<class T> \highlight{constexpr} complex<T> proj(const complex<T>\&);
 	
-	template<class T> \highlight{constexpr} polar(const T\&, const T\& = T());	
+	template<class T> \highlight{constexpr} complex<T>  polar(const T\&, const T\& = T());	
 
 }
 
@@ -496,108 +497,131 @@ The following proposed changes, indicated in \highlight{green}, refer to the Wor
 \code{
 	\ldots\\
 
-	template<class T> \highlight{constexpr} T abs(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} T abs(const complex<T>\& x);\\
 
  	\ldots\\
 
-	template<class T> \highlight{constexpr} T arg(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} T arg(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> constexpr T norm(const complex<T>\&);\\
+	template<class T> constexpr T norm(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> constexpr conj(const complex<T>\&);\\
+	template<class T> constexpr complex<T> conj(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} proj(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> proj(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} polar(const T\&, const T\& = T());	
+	template<class T> \highlight{constexpr} complex<T> polar(const T\& rho, const T\& theta = T());	
 }
 
 \subsection{Modifications to ``Transcendentals'' [complex.transcendentals]}
 
 \code{
-  	template<class T> \highlight{constexpr} complex<T> acos(const complex<T>\&);\\
+  	template<class T> \highlight{constexpr} complex<T> acos(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> asin(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> asin(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> atan(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> atan(const complex<T>\& x);\\
 
 	\ldots\\
 
-  	template<class T> \highlight{constexpr} complex<T> acosh(const complex<T>\&);\\
+  	template<class T> \highlight{constexpr} complex<T> acosh(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> asinh(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> asinh(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> atanh(const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> atanh(const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> cos  (const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> cos  (const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> cosh (const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> cosh (const complex<T>\& x);\\
 
 	\ldots\\
 	
-	template<class T> \highlight{constexpr} complex<T> exp  (const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> exp  (const complex<T>\& x);\\
 
 	\ldots\\
 
- 	template<class T> \highlight{constexpr} complex<T> log  (const complex<T>\&);\\
+ 	template<class T> \highlight{constexpr} complex<T> log  (const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> log10(const complex<T>\&);\\
-	
-	\ldots\\
-
-  	template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\&, const T\&);\\
+	template<class T> \highlight{constexpr} complex<T> log10(const complex<T>\& x);\\
 
 	\ldots\\
  
- 	template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\&, const complex<T>\&);\\
+ 	template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\& x, const complex<T>\& y);\\	
+	\ldots\\
+
+  	template<class T> \highlight{constexpr} complex<T> pow  (const complex<T>\& x, const T\& y);\\
 	
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> pow  (const T\&, const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> pow  (const T\& x, const complex<T>\& y);\\
 
 	\ldots\\
 
-  	template<class T> \highlight{constexpr} complex<T> sin  (const complex<T>\&);\\
+  	template<class T> \highlight{constexpr} complex<T> sin  (const complex<T>\& x);\\
 
 	\ldots\\
 	
-	template<class T> \highlight{constexpr} complex<T> sinh (const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> sinh (const complex<T>\& x);\\
 
 	\ldots\\
  
- 	template<class T> \highlight{constexpr} complex<T> sqrt (const complex<T>\&);\\
+ 	template<class T> \highlight{constexpr} complex<T> sqrt (const complex<T>\& x);\\
 
 	\ldots\\
  
- 	template<class T> \highlight{constexpr} complex<T> tan  (const complex<T>\&);\\
+ 	template<class T> \highlight{constexpr} complex<T> tan  (const complex<T>\& x);\\
 
 	\ldots\\
 
-	template<class T> \highlight{constexpr} complex<T> tanh (const complex<T>\&);\\
+	template<class T> \highlight{constexpr} complex<T> tanh (const complex<T>\& x);\\
 
 	\ldots\\
 }
+
+\subsection{Modifications to  ``Additional overloads'' [cmplx.over]}
+
+$^1$ The following function templates \remove{shall} have additional \highlight{constexpr} overloads:
+\newline
+\hspace{5em}
+\code{
+\begin{tabular}{lll}
+	arg &\qquad \qquad\qquad&norm
+\\
+	conj & \qquad\qquad\qquad&proj
+\\ 
+	imag & \qquad \qquad\qquad&real
+\end{tabular}
+}
+\newline
+\remove{where \code{norm}, \code{conj}, \code{imag}, and \code{real} are constexpr overloads.}
+
+$^2$ The additional \highlight{constexpr} overloads \remove{shall be} \highlight{are} sufficient to ensure:
+\\
+\ldots
+
+$^3$ Function template \code{pow} has additional \highlight{constexpr} overloads sufficient to ensure\ldots
+
 
 \subsection{Modifications to  ``Header \header{cmath} synopsis'' [cmath.syn]}
 
@@ -872,7 +896,7 @@ namespace std\{
 
 %% scalbln %%
 
-\oldhighlight{constexpr} \fptype\ scalbln(\fptype\ x, int n);
+\oldhighlight{constexpr} \fptype\ scalbln(\fptype\ x, long int n);
 
 \oldhighlight{constexpr} float scalblnf(float x, long int n);
 
@@ -892,34 +916,11 @@ namespace std\{
 
 %% abs %%
 
-\oldhighlight{constexpr} int abs(int j);
-
-\oldhighlight{constexpr} long int abs(long int j);
-
-\oldhighlight{constexpr} long long int abs(long long int j);
-
-\oldhighlight{constexpr} float abs(float j);
-
-\oldhighlight{constexpr} double abs(double j);
-
-\oldhighlight{constexpr}long double abs(long double j);
-
-\vspace{2ex}
 
 %% fabs %%
 
-\oldhighlight{constexpr} float fabs(float x); \stdcomment{library.c}
-
-\oldhighlight{constexpr} double fabs(double x);
-
-\oldhighlight{constexpr} long double fabs(long double x); \stdcomment{library.c}
-
-\oldhighlight{constexpr} float fabsf(float x);
-
-\oldhighlight{constexpr} long double fabsl(long double x);
-
-\vspace{2ex}
-
+\ldots
+\\
 %% hypot %%
 
 \highlight{constexpr} \fptype\ hypot(\fptype\ x, \fptype\ y); 
@@ -998,10 +999,10 @@ namespace std\{
 }
 
 
-\subsection{Modifications to ``Three-dimensional hypotenuse''  [c.math.hpot3]}
+\subsection{Modifications to ``Three-dimensional hypotenuse''  [c.math.hypot3]}
 
 \code{
-	\highlight{constexpr} \fptype\ hypot(\fptype\ x, \fptype\ y);
+	\highlight{constexpr} \fptype\ hypot(\fptype\ x, \fptype\ y, \fptype\ z);
 }
 
 \end{document}
